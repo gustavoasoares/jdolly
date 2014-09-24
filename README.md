@@ -1,1 +1,1 @@
-# This is my README
+JDOLLY is a Java program generator that exhaustively generates programs, up to a given scope. The Alloy specification language is employed as the formal infrastructure for generating programs; a metamodel for Java is encoded in Alloy, and the Alloy Analyzer finds solutions, which are translated into programs by JDOLLY, for user-specified constraints. JDolly can be used to automate the test input generation of systems that uses programs as inputs, such as refactoring engines.
