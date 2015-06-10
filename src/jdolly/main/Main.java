@@ -4,14 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.List;
 
 import jdolly.JDolly;
 import jdolly.JDollyFactory;
 import jdolly.Scope;
 import jdolly.examples.TestLogger;
-
 
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
@@ -21,25 +19,30 @@ public class Main {
 	private static String output = "";
 	private static JDolly generator;
 	private static Scope scope;
+	private static int skip = 1;
 
 	private static Long maxPrograms;
 
 	public static void main(String[] args) {
 		parseArguments(args);
 		generator = JDollyFactory.getInstance().createJDolly(scope, theoryFile);
-		generatePrograms(true, true, false, maxPrograms);
+		generatePrograms(true, true, false, maxPrograms, skip);
 
 	}
 
 	public static void generatePrograms(boolean printPrograms,
-			boolean logFiles, boolean checkCompilationErrors, Long maxPrograms) {
+			boolean logFiles, boolean checkCompilationErrors, Long maxPrograms, int skip) {
 
 		long count = 0;
 
 		TestLogger logger = new TestLogger(output);
 
 		for (List<CompilationUnit> cus : generator) {
-
+			
+			count++;
+			
+			if (count % skip != 0) continue;
+			
 			if (maxPrograms != null && count == maxPrograms)
 				break;
 
@@ -53,7 +56,7 @@ public class Main {
 			if (logFiles)
 				logger.logGenerated(cus, checkCompilationErrors);
 
-			count++;
+			
 
 		}
 
@@ -97,6 +100,8 @@ public class Main {
 					System.err.println("-addconstraints requires a path");
 				if (vflag)
 					System.out.println("addconstraints path= " + theoryFile);
+			} else if (arg.equals("-skip")) {
+				skip = Integer.parseInt(args[i++]);
 			} else if (arg.equals("-output")) {
 				if (i < args.length)
 					output = args[i++];
