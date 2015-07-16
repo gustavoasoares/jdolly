@@ -163,7 +163,59 @@ public class AlloyToJavaTranslator {
 
 		Field classExtendRel = getField("extend", classFields);
 		Map<String, List<String>> extendRel = getRelations(classExtendRel);
+		
+		Field classIsInterfaceRel = getField("isInterface", classFields);
+		
+		
+		Field classIsAbstractRel = getField("isAbstract", classFields);
+		
+		
+		//MOD1
+		Field classImplementRel = getField("implement", classFields);
+		if (classImplementRel != null) {
+			Map<String, List<String>> implementRel = getRelations(classImplementRel);
+//			if (implementRel.size() > 0) {
+//				System.out.println();
+//			}
+			//MOD2
+			List<String> interface_ = implementRel.get(classId);
+			if (interface_ != null) {
+				String interfaceName = classIdRel.get(interface_.get(0)).get(0);
+				result.superInterfaceTypes().add(ast.newSimpleType(ast
+						.newSimpleName(interfaceName)));
+			}
+		}
+		//isInterface
+		if (classIsInterfaceRel != null) {
+			Map<String, List<String>> IsInterfacRel = getRelations(classIsInterfaceRel);
+			String isInterface = IsInterfacRel.get(classId).get(0);
+			boolean isInterface_ = isInterface.contains("True");
+			if (isInterface_) {
+				result.setInterface(true);
+			}
+			// methods
+			List<MethodDeclaration> methods = getClassMethods(classFields, classId,isInterface_);
+			for (MethodDeclaration methodDeclaration : methods) {
+				result.bodyDeclarations().add(methodDeclaration);
+			}
+		} else {
+			// methods
+			List<MethodDeclaration> methods = getClassMethods(classFields, classId,false);
+			for (MethodDeclaration methodDeclaration : methods) {
+				result.bodyDeclarations().add(methodDeclaration);
+			}
+		}
 
+		//isInterface
+		if (classIsAbstractRel != null) {
+			Map<String, List<String>> IsAbstractRel = getRelations(classIsAbstractRel);
+			String isAbstract = IsAbstractRel.get(classId).get(0);
+			boolean isAbstract_ = isAbstract.contains("True");
+			if (isAbstract_) {
+				result.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
+			}
+		}
+	
 		// id
 		String className = classIdRel.get(classId).get(0);
 		result.setName(ast.newSimpleName(className));
@@ -186,17 +238,13 @@ public class AlloyToJavaTranslator {
 			result.bodyDeclarations().add(fieldDeclaration);
 		}
 
-		// methods
-		List<MethodDeclaration> methods = getClassMethods(classFields, classId);
-		for (MethodDeclaration methodDeclaration : methods) {
-			result.bodyDeclarations().add(methodDeclaration);
-		}
+
 
 		return result;
 	}
 
 	private List<MethodDeclaration> getClassMethods(
-			SafeList<Field> classFields, String classId) {
+			SafeList<Field> classFields, String classId, boolean isInterface) {
 		List<MethodDeclaration> result = new ArrayList<MethodDeclaration>();
 
 		Field methodsRel = getField("methods", classFields);
@@ -210,6 +258,7 @@ public class AlloyToJavaTranslator {
 			SafeList<Field> mFields = methodSig.getFields();
 			Field mIdRelations = getField("id", mFields);
 			Map<String, List<String>> idRel = getRelations(mIdRelations);
+			Field mIsAbstractRelations = getField("isAbstract", mFields);
 			Field mArgRelations = getField("param", mFields);
 			Map<String, List<String>> argRel = getRelations(mArgRelations);
 			Field mVisRelations = getField("acc", mFields);
@@ -228,6 +277,16 @@ public class AlloyToJavaTranslator {
 				if (visRel.containsKey(method))
 					vis = visRel.get(method).get(0);
 
+				String isAbstract = "";
+				if (mIsAbstractRelations != null) {
+					Map<String, List<String>> isAbstractRel = getRelations(mIsAbstractRelations);
+					
+					if (isAbstractRel.containsKey(method))
+						isAbstract = isAbstractRel.get(method).get(0);
+				} else {
+					isAbstract = "False";
+				}
+				
 				MethodDeclaration methodDeclaration = ast
 						.newMethodDeclaration();
 				methodDeclaration.setName(ast.newSimpleName(id.toLowerCase()));
@@ -235,6 +294,11 @@ public class AlloyToJavaTranslator {
 				if (m != null)
 					methodDeclaration.modifiers().add(m);
 
+				if (isAbstract.contains("True") && !isInterface) {
+					Modifier mAbstrct = getAccessModifier("abstract");
+					methodDeclaration.modifiers().add(mAbstrct);
+				}
+				
 				if (arg.length() > 0) {
 					SingleVariableDeclaration parameter = ast
 							.newSingleVariableDeclaration();
@@ -245,13 +309,14 @@ public class AlloyToJavaTranslator {
 
 				methodDeclaration.setReturnType2(ast
 						.newPrimitiveType(PrimitiveType.LONG));
-
-				String body = bodyRel.get(method).get(0);
-				ReturnStatement returnStatement = ast.newReturnStatement();
-				returnStatement.setExpression(getMethodBody(body, classId));
-				methodDeclaration.setBody(ast.newBlock());
-				methodDeclaration.getBody().statements().add(returnStatement);
-
+				List<String> list = bodyRel.get(method);
+				if (list != null) {
+					String body = bodyRel.get(method).get(0);
+					ReturnStatement returnStatement = ast.newReturnStatement();
+					returnStatement.setExpression(getMethodBody(body, classId));
+					methodDeclaration.setBody(ast.newBlock());
+					methodDeclaration.getBody().statements().add(returnStatement);
+				}
 				result.add(methodDeclaration);
 			}
 		}
@@ -664,6 +729,8 @@ public class AlloyToJavaTranslator {
 					.newModifier(Modifier.ModifierKeyword.PROTECTED_KEYWORD);
 		else if (vis.equals("public_0"))
 			result = ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD);
+		else if (vis.equals("abstract"))
+			result = ast.newModifier(Modifier.ModifierKeyword.ABSTRACT_KEYWORD);
 		return result;
 	}
 
