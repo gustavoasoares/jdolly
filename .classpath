@@ -10,6 +10,8 @@
 	<classpathentry kind="lib" path="lib/ant.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.core.runtime_3.2.0.v20060603.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.equinox.common_3.2.0.v20060603.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="lib/org.eclipse.cdt.core_5.4.0.201206111645.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -168,16 +168,11 @@ public class AlloyToJavaTranslator {
 		
 		
 		Field classIsAbstractRel = getField("isAbstract", classFields);
-		
-		
-		//MOD1
+	
 		Field classImplementRel = getField("implement", classFields);
 		if (classImplementRel != null) {
 			Map<String, List<String>> implementRel = getRelations(classImplementRel);
-//			if (implementRel.size() > 0) {
-//				System.out.println();
-//			}
-			//MOD2
+			
 			List<String> interface_ = implementRel.get(classId);
 			if (interface_ != null) {
 				String interfaceName = classIdRel.get(interface_.get(0)).get(0);

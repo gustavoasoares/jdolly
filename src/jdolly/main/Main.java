@@ -23,7 +23,7 @@ public class Main {
 
 	private static Long maxPrograms;
 
-	public static void main(String[] args) {
+	public static void run(String[] args) {
 		parseArguments(args);
 		generator = JDollyFactory.getInstance().createJDolly(scope, theoryFile);
 		generatePrograms(true, true, false, maxPrograms, skip);
