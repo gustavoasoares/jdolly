@@ -1,0 +1,1 @@
+java -cp .:../libs/alloy4.2.jar:../libs/log4j-1.2.16.jar:../libs/org.eclipse.cdt.core_5.4.0.201206111645.jar:../libs/org.eclipse.equinox.common_3.6.100.v20120522-1841.jar cdolly.examples.RunModel /Users/gugawag/Documents/mestrado/workspace/cdolly-v2/alloy/new/rename_global_var.als $1
