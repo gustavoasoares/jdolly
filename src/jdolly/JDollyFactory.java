@@ -16,11 +16,12 @@ public class JDollyFactory {
 	public JDolly createJDolly(Scope scope, String theory) {
 		
 		if (scope == null)
-			return new JDollyImp(theory);			
-		if (scope.getMaxField() > 0)
+			return new JDollyImp(theory);
+		//AQUI
+//		if (scope.getMaxField() > 0)
 			return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(),scope.getMaxMethod(), scope.getMaxField());
 		
-		return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(),scope.getMaxMethod());				
+//		return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(),scope.getMaxMethod());				
 	}
 
 }

@@ -64,7 +64,7 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 	protected int maxFieldNames;
 	
 	
-	
+	protected long maximumPrograms = -1;
 	 
 
 	public JDolly() {

@@ -3,6 +3,8 @@ package jdolly;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jdt.core.dom.CompilationUnit;
+
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
@@ -64,6 +66,7 @@ public class JDollyImp extends JDolly {
 		Sig field = createSigByName("Field");
 		Sig fieldId = createSigByName("FieldId");
 
+		isExactMaxPackages = true;
 		CommandScope packageScope = new CommandScope(package_,
 				isExactMaxPackages, maxPackages);
 		result.add(packageScope);
@@ -71,7 +74,7 @@ public class JDollyImp extends JDolly {
 		CommandScope typeScope = new CommandScope(type, isExactMaxClasses(),
 				maxClasses);
 		result.add(typeScope);
-
+		isExactMaxClassNames = true;
 		CommandScope classIdScope = new CommandScope(classId,
 				isExactMaxClassNames, maxClassNames);
 		result.add(classIdScope);
@@ -79,7 +82,8 @@ public class JDollyImp extends JDolly {
 		CommandScope methodScope = new CommandScope(method, isExactMaxMethods,
 				maxMethods);
 		result.add(methodScope);
-
+		isExactMaxMethodNames = true;
+		maxMethodNames = 3;
 		CommandScope methodIdScope = new CommandScope(methodId,
 				isExactMaxMethodNames, maxMethodNames);
 		result.add(methodIdScope);
@@ -115,9 +119,10 @@ public class JDollyImp extends JDolly {
 
 			for (Command command : javaMetamodel.getAllCommands()) {
 
-				ConstList<CommandScope> constList = createScopeList();
+				
+//				ConstList<CommandScope> constList = createScopeList();
 
-				command = command.change(constList);
+//				command = command.change(constList);
 
 				// Choose some default options for how you want to execute the
 				// commands
@@ -135,6 +140,21 @@ public class JDollyImp extends JDolly {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	public static void main(String[] args) {
+		
+		JDollyImp jDollyImp = new JDollyImp("/Users/melmongiovi/Documents/workspace3/program_counter/alloyTheoryNew/pushdownmethod_final.als", 2, 4, 5, 0);
+//		JDollyImp jDollyImp = new JDollyImp("/Users/melmongiovi/Documents/workspace3/program_counter/alloyTheoryNew/bug9.als", 2, 4, 5, 0);
+		int i = 1;
+		while(jDollyImp.hasNext()) {
+//			if (i == 257) {
+//				System.out.println();
+//			}
+			i++;
+			List<CompilationUnit> next = jDollyImp.next();
+			System.out.println(next);
+		}
+		
 	}
 
 }

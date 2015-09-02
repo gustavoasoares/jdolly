@@ -12,12 +12,16 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 public class ImportVisitor extends ASTVisitor {
 
 	private String superClassName;
+	private String interfaceName;
 	private List<String> fieldTypes = new ArrayList<String>();
 	private List<String> instanceTypes = new ArrayList<String>();
 
 	@Override
 	public boolean visit(TypeDeclaration node) {
-
+		List superInterfaceTypes = node.superInterfaceTypes();
+		if (superInterfaceTypes != null && superInterfaceTypes.size() > 0) {
+			interfaceName = superInterfaceTypes.get(0).toString();
+		}
 		Type superclassType = node.getSuperclassType();
 		if (superclassType != null)
 			superClassName = superclassType.toString();
@@ -62,6 +66,14 @@ public class ImportVisitor extends ASTVisitor {
 
 	public List<String> getInstanceTypes() {
 		return instanceTypes;
+	}
+
+	public String getInterfaceName() {
+		return interfaceName;
+	}
+
+	public void setInterfaceName(String interfaceName) {
+		this.interfaceName = interfaceName;
 	}
 
 
