@@ -23,7 +23,7 @@ public class Util {
 	private static void printTarget(final File output) {
 		System.out.println("-----------------------------------------");
 		System.out.println("Target");
-		System.out.println(getProgramsFrom(output));
+		System.out.println(getProgramFrom(output));
 	}
 
 	public static void printSeparator() {
@@ -33,10 +33,10 @@ public class Util {
 	private static void printSource(final File input) {
 		System.out.println("-----------------------------------------");
 		System.out.println("Source");
-		System.out.println(getProgramsFrom(input));
+		System.out.println(getProgramFrom(input));
 	}	
 
-	public static String getProgramsFrom(File path) {
+	public static String getProgramFrom(File path) {
 		
 		File[] packages = getPackagesFrom(path);
 
@@ -97,32 +97,20 @@ public class Util {
 		return result.toString();
 	}
 
-
-	// This method can be used in BCReport, BCFilter, TSPFilter, NetbeansCounter, Compile e MoveResults. 
-	// Putting him may promote reuse.
-	public static File[] getTestsFromPath(String path){
-		File refactoring = new File(path);
-		return getTestsFromFile(refactoring);
-	}
-	
-	public static File[] getFilesFromPath(String resultFolderPath) {
+	public static File[] getFilesFrom(String resultFolderPath) {
 		File resultFolder = new File(resultFolderPath);
 		File[] listFiles = resultFolder.listFiles();
 		return listFiles;
 	}
-	
-	public static A4Options defHowExecCommands() {
-		A4Options options = new A4Options();
-		options.solver = A4Options.SatSolver.SAT4J;
-		return options;
+
+	// This method can be used in BCReport, BCFilter, TSPFilter, NetbeansCounter, Compile e MoveResults. 
+	// Putting him may promote reuse.
+	public static File[] getTestsFrom(String path){
+		File refactoring = new File(path);
+		return getTestsFromFile(refactoring);
 	}
 	
-	public static void printCurrentCommandExec(final Command command) {
-		System.out.println("============ Command " + command
-				+ ": ============");
-	}
-	
-	public static File[] getTestsFromFile(File refactoring) {
+	private static File[] getTestsFromFile(File refactoring) {
 		File[] tests = refactoring.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
@@ -135,6 +123,18 @@ public class Util {
 		});
 		return tests;
 	}
+		
+	public static A4Options defHowExecCommands() {
+		A4Options options = new A4Options();
+		options.solver = A4Options.SatSolver.SAT4J;
+		return options;
+	}
+	
+	public static void printCurrentCommandExec(final Command command) {
+		System.out.println("============ Command " + command
+				+ ": ============");
+	}
+	
 	/** If you want to print the separator between each problem, use "Yes" as value for 
 	 * hasSeparator parameter. "No", otherwise. */
 	public static void printEachProblemAndHisAmountWithOrWithoutSeparator(Map<String, Integer> problems, 

@@ -40,7 +40,7 @@ public class TSPFilter {
 				String message = FileUtil.leArquivo(messageFile
 						.getAbsolutePath());		
 				message = getMessageTemplate(message);
-				String program = Util.getProgramsFrom(in);
+				String program = Util.getProgramFrom(in);
 				program = test.getAbsolutePath() + "\n\n" + program;
 
 				Precondition pre = Precondition.getNamed(message);

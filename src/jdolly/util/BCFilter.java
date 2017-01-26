@@ -1,43 +1,38 @@
 package jdolly.util;
 import java.io.File;
-import java.io.FileFilter;
 
 public class BCFilter {
+	
 	public static void main(String[] args) {
+		run();
+	}
+
+	private static void run() {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/encapsulatefield/last/";
-		File refactoring = new File(path);
-		File[] tests = refactoring.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.getName().startsWith("test"))
-					return true;
-				else
-					return false;
-			}
+		File[] tests = Util.getTestsFrom(path);
 
-		});
+		int totalOfBehaviorChangeFails = countHowManyBehaviorChangeFailsExists(tests);
+		System.out.println(totalOfBehaviorChangeFails);
+	}
 
-		int count = 0;
-		
+	private static int countHowManyBehaviorChangeFailsExists(File[] tests) {
+		int totalOfBehaviorChangeFails = 0;
 		
 		for (File test : tests) {
 			File in = new File(test, "in");
 			File out = new File(test, "out/jrrt");
-
 			File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE");
+			
 			if (bcSR1.exists()) {			
-				String program = Util.getProgramsFrom(in);
+				String program = Util.getProgramFrom(in);
 //				String program2 = Util.getProgram(out);
 				//if (program.contains("Class1_0.this.k_0") && !program.contains("int a")  ) {
-					System.out.println(test);
-					Util.printPrograms(in, out);
-					count++;	
+				System.out.println(test);
+				Util.printPrograms(in, out);
+				totalOfBehaviorChangeFails++;	
 				//}
 			}
-			
-			
-
 		}
-		System.out.println(count);
+		return totalOfBehaviorChangeFails;
 	}
 }

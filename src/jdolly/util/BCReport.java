@@ -6,25 +6,25 @@ import java.util.List;
 
 public class BCReport {
 
+	private static List<String> safeRefactorAntigo = new ArrayList<String>();
+	private static List<String> safeRefactorNovo = new ArrayList<String>();
+	
 	public static void main(String[] args) {
+		run();
+	}
+
+	private static void run() {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/addparameter/last/";
-		File refactoring = new File(path);
-		File[] tests = refactoring.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.getName().startsWith("test"))
-					return true;
-				else
-					return false;
-			}
+		File[] tests = Util.getTestsFrom(path);
 
-		});
-
-		int i = 0;
-		int j = 0;
-		List<String> safeRefactorAntigo = new ArrayList<String>();
-		List<String> safeRefactorNovo = new ArrayList<String>();
+		int totalOfbcSR1Individually = 0;
+		int totalOfbcSR2Individually = 0;
+				
+		String stringRepresentationOfTest = StrUtil.EMPTY_STRING;
+		
 		for (File test : tests) {
+			stringRepresentationOfTest = test.toString();
+			
 			File in = new File(test, "in");
 			File out = new File(test, "out/jrrt");
 //			File out2 = new File(test, "out/eclipse2");
@@ -33,34 +33,41 @@ public class BCReport {
 			File bcSR2 = new File(out, "BEHAVIORCHANGE_FAILURE2");
 			
 			if (bcSR1.exists() || bcSR2.exists()) {
-				System.out.println(test.toString());
+				System.out.println(stringRepresentationOfTest);
 			}
-			if ((bcSR1.exists() && !bcSR2.exists())) {
-				safeRefactorAntigo.add(test.toString());
-				System.out.println(test.toString());
+			boolean onlyBCSR1Exists = (bcSR1.exists() && !bcSR2.exists());
+			if (onlyBCSR1Exists) {
+				safeRefactorAntigo.add(stringRepresentationOfTest);
+				System.out.println(stringRepresentationOfTest);
 				Util.printPrograms(in, out);
-				i++;
+				totalOfbcSR1Individually++;
 			}
-			if (!bcSR1.exists() && bcSR2.exists()) {
-				safeRefactorNovo.add(test.toString());
+			boolean onlyBCSR2Exists = !bcSR1.exists() && bcSR2.exists();
+			if (onlyBCSR2Exists) {
+				safeRefactorNovo.add(stringRepresentationOfTest);
 				Util.printPrograms(in, out);
-				j++;
+				totalOfbcSR2Individually++;
 			}
-
 		}
+		printSafeRefactExecution("V0","V1");
+		printSafeRefacTests(safeRefactorAntigo);
+		
+		printSafeRefactExecution("V1","V0");
+		printSafeRefacTests(safeRefactorNovo);
+	}
 
-		System.out
-				.println("SafeRefactor V0 pegou mas SafeRefactor V1 não pegou");
+	private static void printSafeRefacTests(List<String> safeRefactorAntigo) {
 		for (String string : safeRefactorAntigo) {
 			System.out.println(string);
 		}
-		System.out
-				.println("SafeRefactor V1 pegou mas SafeRefactor V0 não pegou");
-		for (String string : safeRefactorNovo) {
-			System.out.println(string);
-		}
-
 	}
+
+	private static void printSafeRefactExecution(String safeRefactWorked, String safeRefactNotWorked) {
+		System.out.println("SafeRefactor " + safeRefactWorked + 
+				" pegou mas SafeRefactor " + 
+				safeRefactNotWorked + " não pegou");
+	}
+
 
 	
 

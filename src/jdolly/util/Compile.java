@@ -1,7 +1,6 @@
 package jdolly.util;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.PrintWriter;
 
 public class Compile {
@@ -14,8 +13,9 @@ public class Compile {
 		PrintWriter pw = new PrintWriter(outputByteArray);
 		PrintWriter pwerror = new PrintWriter(outputByteArrayError);
 
+		String commandLine = "-classpath rt.jar ";
 		org.eclipse.jdt.internal.compiler.batch.Main.compile(
-				"-classpath rt.jar " + path, pw, pwerror);
+				commandLine + path, pw, pwerror);
 
 		// System.out.println(out.toString());
 		// System.out.println(outError.toString());
@@ -30,7 +30,7 @@ public class Compile {
 //		String path = "/private/var/folders/bx/bxpvKGfwF-yg3RjPZ5LRJk+++TI/-Tmp-/pullupfield0";
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfield/last";
 		
-		File[] tests = Util.getTestsFromPath(path);
+		File[] tests = Util.getTestsFrom(path);
 		
 		int totalOfCompilationErrors = countTotalOfCompilationErrors(tests);
 		
