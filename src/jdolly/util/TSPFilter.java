@@ -3,14 +3,8 @@ package jdolly.util;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class TSPFilter {
 	private static final String REFACTORING = "movemethod";
@@ -46,7 +40,7 @@ public class TSPFilter {
 				String message = FileUtil.leArquivo(messageFile
 						.getAbsolutePath());		
 				message = getMessageTemplate(message);
-				String program = Util.getProgram(in);
+				String program = Util.getProgramsFrom(in);
 				program = test.getAbsolutePath() + "\n\n" + program;
 
 				Precondition pre = Precondition.getNamed(message);

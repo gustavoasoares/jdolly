@@ -1,8 +1,6 @@
 package jdolly.util;
 import java.io.File;
 import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BCFilter {
 	public static void main(String[] args) {
@@ -28,7 +26,7 @@ public class BCFilter {
 
 			File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE");
 			if (bcSR1.exists()) {			
-				String program = Util.getProgram(in);
+				String program = Util.getProgramsFrom(in);
 //				String program2 = Util.getProgram(out);
 				//if (program.contains("Class1_0.this.k_0") && !program.contains("int a")  ) {
 					System.out.println(test);

@@ -5,60 +5,146 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Map;
+
+import edu.mit.csail.sdg.alloy4compiler.ast.Command;
+import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 
 
 public class Util {
-	public static void printPrograms(File in, File out) {
-		System.out.println("-----------------------------------------");
-		System.out.println("Source");
-		System.out.println(getProgram(in));
+	
+	/* The modifier 'final' brings more consistency to the objects, 
+	 * because they will not change their values.*/
+	public static void printPrograms(final File input, final File output) {
+		printSource(input);
+		printTarget(output);
+	}
+
+	private static void printTarget(final File output) {
 		System.out.println("-----------------------------------------");
 		System.out.println("Target");
-		System.out.println(getProgram(out));
+		System.out.println(getProgramsFrom(output));
+	}
+
+	public static void printSeparator() {
+		System.out.println("----------------");
 	}
 	
+	private static void printSource(final File input) {
+		System.out.println("-----------------------------------------");
+		System.out.println("Source");
+		System.out.println(getProgramsFrom(input));
+	}	
 
-	public static String getProgram(File path) {
-		String result = "";
+	public static String getProgramsFrom(File path) {
 		
-		File[] packages = path.listFiles(new FileFilter() {
+		File[] packages = getPackagesFrom(path);
+
+		String result = getClassesNamesFrom(packages);
+		
+		return result;
+	}
+
+	private static File[] getPackagesFrom(File path) {
+		return path.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
 				return pathname.isDirectory();
 			}
 		});
+	}
 
-		for (File p : packages) {
-			File[] classes = p.listFiles(new FileFilter() {
+	private static String getClassesNamesFrom(File[] packages) {
+		
+		//StringBuilder is more coherent to be used because the entity below will change its value. 
+		StringBuilder result = new StringBuilder(StrUtil.EMPTY_STRING);
+		File[] classes;
+		
+		for (File pack : packages) {
+			classes = pack.listFiles(new FileFilter() {
 				@Override
 				public boolean accept(File pathname) {
-					return pathname.getName().endsWith(".java");
+					String nameOfPath = pathname.getName();
+					return nameOfPath.endsWith(StrUtil.JAVA_EXTENSION);
 				}
 			});
-			for (File c : classes) {
-				result = result + getClass(c) + "\n";
+			for (File _class : classes) {
+				result.append(getClass(_class));
+				result.append(StrUtil.BREAK_LINE);
 			}
 		}
-		return result;
+		return result.toString();
 	}
 
-	private static String getClass(File c) {
-		BufferedReader in;
+	private static String getClass(File file) {
 		String str;
-		String result = "";
+		StringBuilder result = new StringBuilder(StrUtil.EMPTY_STRING);
+		BufferedReader input;
 		try {
-			in = new BufferedReader(new FileReader(c));
-			while ((str = in.readLine()) != null) {
-				result += "\n" + str;
+			input = new BufferedReader(new FileReader(file));
+			while ((str = input.readLine()) != null) {
+				result.append(StrUtil.BREAK_LINE);
+				result.append(str);
 			}
-			in.close();
+			input.close();
+			
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return result;
+		return result.toString();
 	}
+
+
+	// This method can be used in BCReport, BCFilter, TSPFilter, NetbeansCounter, Compile e MoveResults. 
+	// Putting him may promote reuse.
+	public static File[] getTestsFromPath(String path){
+		File refactoring = new File(path);
+		return getTestsFromFile(refactoring);
+	}
+	
+	public static File[] getFilesFromPath(String resultFolderPath) {
+		File resultFolder = new File(resultFolderPath);
+		File[] listFiles = resultFolder.listFiles();
+		return listFiles;
+	}
+	
+	public static A4Options defHowExecCommands() {
+		A4Options options = new A4Options();
+		options.solver = A4Options.SatSolver.SAT4J;
+		return options;
+	}
+	
+	public static void printCurrentCommandExec(final Command command) {
+		System.out.println("============ Command " + command
+				+ ": ============");
+	}
+	
+	public static File[] getTestsFromFile(File refactoring) {
+		File[] tests = refactoring.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				boolean answer = false;
+				String nameOfPath = pathname.getName();
+				if (nameOfPath.startsWith(StrUtil.TEST_PREFIX))
+					answer = true;
+				return answer;
+			}
+		});
+		return tests;
+	}
+	/** If you want to print the separator between each problem, use "Yes" as value for 
+	 * hasSeparator parameter. "No", otherwise. */
+	public static void printEachProblemAndHisAmountWithOrWithoutSeparator(Map<String, Integer> problems, 
+			String hasSeparator) {
+		for (Map.Entry<String, Integer> problem : problems.entrySet()) {
+			if(hasSeparator == "Yes"){
+				System.out.println(StrUtil.SEPARATOR);
+			}
+			System.out.println(problem.getKey() + ": " + problem.getValue());
+		}
+	}
+	
 }
