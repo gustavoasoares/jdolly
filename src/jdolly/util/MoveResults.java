@@ -1,7 +1,6 @@
 package jdolly.util;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,41 +10,44 @@ import java.io.OutputStream;
 public class MoveResults {
 
 	public static void main(String[] args) {
+		run();
+	}
 
-		String pathSource = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfieldjrrt/last";
+	private static void run() {
+		
 		String pathTarget = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfield/last";
+		
+		int totalOfCopiedFiles = countHowManyFilesInTargetPathWereCopied(pathTarget);
+		
+		printTotalOfCopiedFiles(totalOfCopiedFiles);
+	}
 
-		File refactoring = new File(pathSource);
-		File[] tests = refactoring.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.getName().startsWith("test"))
-					return true;
-				else
-					return false;
-			}
-
-		});
-
+	private static int countHowManyFilesInTargetPathWereCopied(String pathTarget) {
+		String pathSource = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfieldjrrt/last";
+		File[] tests = Util.getTestsFrom(pathSource);
 		int count = 0;
-		int i = 0;
-
 		for (File test : tests) {
-			
 			File source = new File(test,"out/jrrt");
 			File targetDir = new File(pathTarget);
 			File targetTestDir = new File(targetDir,test.getName());
 			File target = new File(targetTestDir,"out/jrrt");
 			
-			try {
-				copyDirectory(source, target);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			tryToCopyDirectory(source, target);
+			
 			count++;
-
 		}
+		return count;
+	}	
+	
+	private static void tryToCopyDirectory(File source, File target) {
+		try {
+			copyDirectory(source, target);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}	
+	
+	private static void printTotalOfCopiedFiles(int count) {
 		System.out
 				.println("programas copiados: " + count);
 	}
@@ -54,9 +56,7 @@ public class MoveResults {
 			throws IOException {
 
 		if (sourceLocation.isDirectory()) {
-			if (!targetLocation.exists()) {
-				targetLocation.mkdir();
-			}
+			createDirectoryIfNotExists(targetLocation);
 
 			String[] children = sourceLocation.list();
 			for (int i = 0; i < children.length; i++) {
@@ -64,19 +64,20 @@ public class MoveResults {
 						targetLocation, children[i]));
 			}
 		} else {
-
 			InputStream in = new FileInputStream(sourceLocation);
 			OutputStream out = new FileOutputStream(targetLocation);
 
-			// Copy the bits from instream to outstream
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
+			FileUtil.copyFileBitsFromInputStreamToOutputStream(in, out);
+			
 			in.close();
 			out.close();
 		}
 
+	}
+
+	private static void createDirectoryIfNotExists(File targetLocation) {
+		if (!targetLocation.exists()) {
+			targetLocation.mkdir();
+		}
 	}
 }

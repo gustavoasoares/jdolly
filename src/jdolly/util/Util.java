@@ -97,12 +97,6 @@ public class Util {
 		return result.toString();
 	}
 
-	public static File[] getFilesFrom(String resultFolderPath) {
-		File resultFolder = new File(resultFolderPath);
-		File[] listFiles = resultFolder.listFiles();
-		return listFiles;
-	}
-
 	// This method can be used in BCReport, BCFilter, TSPFilter, NetbeansCounter, Compile e MoveResults. 
 	// Putting him may promote reuse.
 	public static File[] getTestsFrom(String path){
