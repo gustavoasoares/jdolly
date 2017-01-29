@@ -11,7 +11,7 @@ public class FileUtil {
 			String baseNameOfPackage) {
 		
 		try {
-			tryToGetClasses(baseDirectoryOfProject, javaFilesNamesFromDirectory, baseNameOfPackage);
+			getClassesNames(baseDirectoryOfProject, javaFilesNamesFromDirectory, baseNameOfPackage);
 		} catch (Exception e) {
 			printErrorInFileUtilMethod("getClasses()");
 			e.printStackTrace();
@@ -22,7 +22,7 @@ public class FileUtil {
 		System.err.println("Erro no metodo FileUtil." + methodName);
 	}
 
-	private static void tryToGetClasses(String path, Vector<String> result,
+	private static void getClassesNames(String path, Vector<String> result,
 			String base) {
 		File[] files = getFilesFrom(path);
 		int totalOfFiles = files.length;
@@ -87,17 +87,9 @@ public class FileUtil {
 
 	public static String leArquivoQuebraLinha(String name) {
 		String result = StrUtil.EMPTY_STRING;
-		StringBuffer fileData = new StringBuffer(1000);
-		BufferedReader reader;
+		
 		try {
-			reader = new BufferedReader(new FileReader(name));
-			char[] buf = new char[1024];
-			int numRead = 0;
-			while ((numRead = reader.read(buf)) != -1) {
-				fileData.append(buf, 0, numRead);
-			}
-			reader.close();
-			result = fileData.toString();
+			result = readFileWithBreakLine(name);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -105,6 +97,20 @@ public class FileUtil {
 		}
 		return result;
 
+	}
+
+	private static String readFileWithBreakLine(String name) throws FileNotFoundException, IOException {
+		String result = StrUtil.EMPTY_STRING;;
+		StringBuffer fileData = new StringBuffer(1000);
+		BufferedReader reader = new BufferedReader(new FileReader(name));
+		char[] buf = new char[1024];
+		int numRead = 0;
+		while ((numRead = reader.read(buf)) != -1) {
+			fileData.append(buf, 0, numRead);
+		}
+		reader.close();
+		result = fileData.toString();
+		return result;
 	}
 
 	public static void gravaArquivo(String name, String texto) {
