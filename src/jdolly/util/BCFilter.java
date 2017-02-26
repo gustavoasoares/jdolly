@@ -1,6 +1,7 @@
 package jdolly.util;
 import java.io.File;
 
+
 public class BCFilter {
 	
 	public static void main(String[] args) {
@@ -11,11 +12,11 @@ public class BCFilter {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/encapsulatefield/last/";
 		File[] tests = Util.getTestsFrom(path);
 
-		int totalOfBehaviorChangeFails = countHowManyBehaviorChangeFailsExists(tests);
-		System.out.println(totalOfBehaviorChangeFails);
+		int totalOfBehavioralChange = countTotalOfBehavioralChange(tests);
+		System.out.println(totalOfBehavioralChange);
 	}
 
-	private static int countHowManyBehaviorChangeFailsExists(File[] tests) {
+	private static int countTotalOfBehavioralChange(File[] tests) {
 		int totalOfBehaviorChangeFails = 0;
 		
 		for (File test : tests) {
@@ -25,8 +26,6 @@ public class BCFilter {
 			
 			if (bcSR1.exists()) {			
 				String program = Util.getProgramFrom(in);
-//				String program2 = Util.getProgram(out);
-				//if (program.contains("Class1_0.this.k_0") && !program.contains("int a")  ) {
 				System.out.println(test);
 				Util.printPrograms(in, out);
 				totalOfBehaviorChangeFails++;	

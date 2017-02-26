@@ -4,26 +4,27 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**This class is useful to give a report about the absence or existence of 
+ * behavioral change and displays the set of unsuccessful tests in this case.  
+ * */
 public class BCReport {
 
 	private static List<String> safeRefactorAntigo = new ArrayList<String>();
 	private static List<String> safeRefactorNovo = new ArrayList<String>();
 	
 	public static void main(String[] args) {
-		run();
+		generateBehaviorChangeReport();
 	}
 
-	private static void run() {
+	/** */
+	private static void generateBehaviorChangeReport() {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/addparameter/last/";
 		File[] tests = Util.getTestsFrom(path);
-
-		int totalOfbcSR1Individually = 0;
-		int totalOfbcSR2Individually = 0;
 				
-		String stringRepresentationOfTest = StrUtil.EMPTY_STRING;
+		String testRepresentation = StrUtil.EMPTY_STRING;
 		
 		for (File test : tests) {
-			stringRepresentationOfTest = test.toString();
+			testRepresentation = test.toString();
 			
 			File in = new File(test, "in");
 			File out = new File(test, "out/jrrt");
@@ -33,20 +34,18 @@ public class BCReport {
 			File bcSR2 = new File(out, "BEHAVIORCHANGE_FAILURE2");
 			
 			if (bcSR1.exists() || bcSR2.exists()) {
-				System.out.println(stringRepresentationOfTest);
+				System.out.println(testRepresentation);
 			}
 			boolean onlyBCSR1Exists = (bcSR1.exists() && !bcSR2.exists());
 			if (onlyBCSR1Exists) {
-				safeRefactorAntigo.add(stringRepresentationOfTest);
-				System.out.println(stringRepresentationOfTest);
+				safeRefactorAntigo.add(testRepresentation);
+				System.out.println(testRepresentation);
 				Util.printPrograms(in, out);
-				totalOfbcSR1Individually++;
 			}
 			boolean onlyBCSR2Exists = !bcSR1.exists() && bcSR2.exists();
 			if (onlyBCSR2Exists) {
-				safeRefactorNovo.add(stringRepresentationOfTest);
+				safeRefactorNovo.add(testRepresentation);
 				Util.printPrograms(in, out);
-				totalOfbcSR2Individually++;
 			}
 		}
 		printSafeRefactExecution("V0","V1");

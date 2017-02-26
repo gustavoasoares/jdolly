@@ -131,7 +131,7 @@ public class Util {
 	
 	/** If you want to print the separator between each problem, use "Yes" as value for 
 	 * hasSeparator parameter. "No", otherwise. */
-	public static void printEachProblemAndHisAmountWithOrWithoutSeparator(Map<String, Integer> problems, 
+	public static void printEachProblemAndHisAmount(Map<String, Integer> problems, 
 			String hasSeparator) {
 		for (Map.Entry<String, Integer> problem : problems.entrySet()) {
 			if(hasSeparator == "Yes"){
