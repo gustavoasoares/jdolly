@@ -7,19 +7,18 @@ import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorSyntax;
-import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.CommandScope;
-import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
+import jdolly.util.Util;
 
 public class JDollyImp extends JDolly {
 
-	public JDollyImp(String alloyTheory, int maxPackages, int maxClasses,
-			int maxMethods, int maxFields) {
+	public JDollyImp(final String alloyTheory, final int maxPackages, final int maxClasses,
+			final int maxMethods, final int maxFields) {
 		super();
 		this.alloyTheory = alloyTheory;
 		this.maxPackages = maxPackages;
@@ -33,8 +32,8 @@ public class JDollyImp extends JDolly {
 
 	}
 
-	public JDollyImp(String alloyTheory, Integer maxPackages,
-			int maxClasses, int maxMethods) {
+	public JDollyImp(final String alloyTheory, final Integer maxPackages,
+			final int maxClasses, final int maxMethods) {
 		super();
 		this.alloyTheory = alloyTheory;
 		this.maxPackages = maxPackages;
@@ -45,7 +44,7 @@ public class JDollyImp extends JDolly {
 		this.maxMethodBody = maxMethods;
 	}
 
-	public JDollyImp(String alloyTheory) {
+	public JDollyImp(final String alloyTheory) {
 		super();
 		this.alloyTheory = alloyTheory;
 
@@ -55,14 +54,14 @@ public class JDollyImp extends JDolly {
 
 		List<CommandScope> result = new ArrayList<CommandScope>();
 
-		Sig type = createSigByName("Class");
-		Sig method = createSigByName("Method");
-		Sig methodId = createSigByName("MethodId");
-		Sig classId = createSigByName("ClassId");
-		Sig package_ = createSigByName("Package");
-		Sig body = createSigByName("Body");
-		Sig field = createSigByName("Field");
-		Sig fieldId = createSigByName("FieldId");
+		final Sig type = createSigByName("Class");
+		final Sig method = createSigByName("Method");
+		final Sig methodId = createSigByName("MethodId");
+		final Sig classId = createSigByName("ClassId");
+		final Sig package_ = createSigByName("Package");
+		final Sig body = createSigByName("Body");
+		final Sig field = createSigByName("Field");
+		final Sig fieldId = createSigByName("FieldId");
 
 		CommandScope packageScope = new CommandScope(package_,
 				isExactMaxPackages, maxPackages);
@@ -119,20 +118,14 @@ public class JDollyImp extends JDolly {
 
 				command = command.change(constList);
 
-				// Choose some default options for how you want to execute the
-				// commands
-				A4Options options = new A4Options();
-				options.solver = A4Options.SatSolver.SAT4J;
-
-				// Execute the command
-				System.out.println("============ Command " + command
-						+ ": ============");
+				A4Options options = Util.defHowExecCommands();
+				
+				Util.printCommand(command);
 
 				currentAns = TranslateAlloyToKodkod.execute_command(rep,
 						javaMetamodel.getAllReachableSigs(), command, options);
 			}
 		} catch (Err e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

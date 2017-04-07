@@ -1,7 +1,9 @@
 package jdolly.util;
 import java.io.File;
 
-
+/**
+ * This class represents a filter of behavioral change.
+ * */
 public class BCFilter {
 	
 	public static void main(String[] args) {

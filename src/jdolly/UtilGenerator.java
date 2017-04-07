@@ -2,109 +2,70 @@ package jdolly;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.PrimitiveType;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-
-
 
 public class UtilGenerator {
 
 	private static final String METHOD_NAME = "m_0";
 	private static AST ast = AST.newAST(AST.JLS3);
 
-	
-
-	public static List<MethodDeclaration> getMethodsList(CompilationUnit cu) {
-		List<MethodDeclaration> result = new ArrayList<MethodDeclaration>();
-		List<TypeDeclaration> types = cu.types();
-		for (TypeDeclaration type : types) {
-			MethodDeclaration[] methods = type.getMethods();
-			for (MethodDeclaration methodDeclaration : methods) {
-				CharSequence getterMethod = "get";
-				
-			//	if (!methodDeclaration.getName().getIdentifier().equals(
-			//			"Test_0")
-			//			&& !methodDeclaration.getName().getIdentifier().equals(
-		//						METHOD_NAME) && !methodDeclaration.getName().getIdentifier().contains(getterMethod))
-					result.add(methodDeclaration);
+	public static List<MethodDeclaration> getMethodsList(final CompilationUnit compilationUnits) {
+		final List<MethodDeclaration> result = new ArrayList<MethodDeclaration>();
+		final List<TypeDeclaration> types = compilationUnits.types();
+		for (final TypeDeclaration type : types) {
+			final MethodDeclaration[] methods = type.getMethods();
+			for (final MethodDeclaration methodDeclaration : methods) {
+				result.add(methodDeclaration);
 			}
-
 		}
 		return result;
 	}
 
-	public static MethodDeclaration getTargetMethod(CompilationUnit cu,
-			String className) {
+	public static MethodDeclaration getTargetMethod(final CompilationUnit compilationUnits,
+			final String className) {
 		MethodDeclaration result = null;
 
-		// for (MethodDeclaration methodDeclaration : methods) {
-		// if (methodDeclaration.getParent() instanceof TypeDeclaration) {
-		// TypeDeclaration typeDeclaration = (TypeDeclaration)
-		// methodDeclaration.getParent();
-		// if (methodDeclaration.getName().getIdentifier().equals("M_0") &&
-		// typeDeclaration.getName().getIdentifier().equals(className))
-		// result = methodDeclaration;
-		// }
-		// }
-		List<TypeDeclaration> types = cu.types();
-		for (TypeDeclaration type : types) {
-			MethodDeclaration[] methods = type.getMethods();
-			for (MethodDeclaration methodDeclaration : methods) {
-				TypeDeclaration typeDeclaration = (TypeDeclaration) methodDeclaration
+		final List<TypeDeclaration> types = compilationUnits.types();
+		for (final TypeDeclaration type : types) {
+			final MethodDeclaration[] methods = type.getMethods();
+			for (final MethodDeclaration methodDeclaration : methods) {
+				final TypeDeclaration typeDeclaration = (TypeDeclaration) methodDeclaration
 						.getParent();
 				if (methodDeclaration.getName().getIdentifier().equals(METHOD_NAME)
 						&& typeDeclaration.getName().getIdentifier().equals(
-								className))
+								className)){
 					result = methodDeclaration;
+				}
 			}
-
 		}
-
 		return result;
 	}
 	
-	public static MethodDeclaration getTargetMethod(CompilationUnit cu) {
+	public static MethodDeclaration getTargetMethod(final CompilationUnit compilationUnits) {
 		MethodDeclaration result = null;
 
-		// for (MethodDeclaration methodDeclaration : methods) {
-		// if (methodDeclaration.getParent() instanceof TypeDeclaration) {
-		// TypeDeclaration typeDeclaration = (TypeDeclaration)
-		// methodDeclaration.getParent();
-		// if (methodDeclaration.getName().getIdentifier().equals("M_0") &&
-		// typeDeclaration.getName().getIdentifier().equals(className))
-		// result = methodDeclaration;
-		// }
-		// }
-		List<TypeDeclaration> types = cu.types();
-		for (TypeDeclaration type : types) {
-			MethodDeclaration[] methods = type.getMethods();
-			for (MethodDeclaration methodDeclaration : methods) {
-				TypeDeclaration typeDeclaration = (TypeDeclaration) methodDeclaration
-						.getParent();
-				if (methodDeclaration.getName().getIdentifier().equals(METHOD_NAME))
+		final List<TypeDeclaration> types = compilationUnits.types();
+		for (final TypeDeclaration type : types) {
+			final MethodDeclaration[] methods = type.getMethods();
+			for (final MethodDeclaration methodDeclaration : methods) {
+				if (methodDeclaration.getName().getIdentifier().equals(METHOD_NAME)){
 					result = methodDeclaration;
+				}	
 			}
-
 		}
-
 		return result;
 	}
 
-	public static List<FieldDeclaration> getFieldsList(CompilationUnit cu) {
-		List<FieldDeclaration> result = new ArrayList<FieldDeclaration>();
-		List<TypeDeclaration> types = cu.types();
-		for (TypeDeclaration type : types) {
-			FieldDeclaration[] fields = type.getFields();
-			for (FieldDeclaration fieldDeclaration : fields) {
-				//Type fieldType = fieldDeclaration.getType();
-				//if (fieldType.toString().equals("long") || fieldType.toString().equals("int"))
+	public static List<FieldDeclaration> getFieldsList(final CompilationUnit compilationUnits) {
+		final List<FieldDeclaration> result = new ArrayList<FieldDeclaration>();
+		final List<TypeDeclaration> types = compilationUnits.types();
+		for (final TypeDeclaration type : types) {
+			final FieldDeclaration[] fields = type.getFields();
+			for (final FieldDeclaration fieldDeclaration : fields) {
 				result.add(fieldDeclaration);
 			}
 		}

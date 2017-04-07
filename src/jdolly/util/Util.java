@@ -117,21 +117,27 @@ public class Util {
 		});
 		return tests;
 	}
-		
+	
+	/** Use SAT4J, which is the default options for SAT Solver, to execute the commands.
+	*/
 	public static A4Options defHowExecCommands() {
 		A4Options options = new A4Options();
 		options.solver = A4Options.SatSolver.SAT4J;
 		return options;
 	}
 	
-	public static void printCurrentCommandExec(final Command command) {
-		System.out.println("============ Command " + command
-				+ ": ============");
+	/** Print a human-readable summary for the given Run or Check command that is executed with 
+	 * certain scope of Java Language.
+	 * For example: === Command Run show for 2 Package, 3 Class, 3 ClassId, 1 Method, 1 MethodId, 1 Body, 2 Field, 2 FieldId: ===*/
+	public static void printCommand(final Command commandToPrint) {
+		System.out.println("=== Command " + commandToPrint
+				+ ": ===");
 	}
 	
-	/** If you want to print the separator between each problem, use "Yes" as value for 
+	/**This method print each problem and his amount. If you want to print the separator 
+	 * between each problem, use "Yes" as value for 
 	 * hasSeparator parameter. "No", otherwise. */
-	public static void printEachProblemAndHisAmount(Map<String, Integer> problems, 
+	public static void printEachProblem(Map<String, Integer> problems, 
 			String hasSeparator) {
 		for (Map.Entry<String, Integer> problem : problems.entrySet()) {
 			if(hasSeparator == "Yes"){
@@ -139,6 +145,13 @@ public class Util {
 			}
 			System.out.println(problem.getKey() + ": " + problem.getValue());
 		}
+	}
+	/**Print the given theory. This theory is related to a alloy file which formally specifies 
+	 * certain constraint related to Java Language scope. 
+	 * For example: printTheory("alloyTheory/encapsulatefield_final.als") will output: === Parsing+Typechecking alloyTheory/encapsulatefield_final.als ===*/
+	public static void printTheory(String theory) {
+		System.out.println("=== Parsing+Typechecking " + theory
+				+ " ===");
 	}
 	
 }

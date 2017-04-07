@@ -16,15 +16,16 @@ public class TSPFilter {
 		File[] tests = Util.getTestsFrom(path);
 
 		for (File test : tests) {
-			checkIfTooStrongPrecondExistsIn(test);
+			checkForTooStrongPrecondition(test);
 		}	
 		saveFileContentFrom(path);
 	}
 
-	/** Too Strong Precondition means the precondition is 
+	/** Check if Too Strong Precondition exists in the given file. 
+	 * Too Strong Precondition means the precondition is 
 	 * very restrictive and complex to satisfy. As a result, it is difficult to guarantee behavior 
 	 * preservation.*/
-	private static void checkIfTooStrongPrecondExistsIn(File test) {
+	private static void checkForTooStrongPrecondition(File test) {
 		File in = new File(test, "in");
 		File out = new File(test, "out/" + StrUtil.JRRT_REFACTORING_TOOLS);
 		File tooStrongPrecondition = new File(out, StrUtil.TOO_STRONG);

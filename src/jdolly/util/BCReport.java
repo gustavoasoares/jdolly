@@ -4,8 +4,9 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**This class is useful to give a report about the absence or existence of 
- * behavioral change and displays the set of unsuccessful tests in this case.  
+/**This class is useful to give a report about the existence or absence of 
+ *behavioral change. If there are any behavioral change, the report also 
+ *displays the set of unsuccessful tests that reveals such behavior violation. 
  * */
 public class BCReport {
 
