@@ -13,34 +13,47 @@ import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 
 public class Util {
 	
-	/* The modifier 'final' brings more consistency to the objects, 
-	 * because they will not change their values.*/
+	public static void printSeparator() {
+		System.out.println("----------------");
+	}
+	
+	/** Print all classes names for the given input, which is related to the 
+	 * source program (i.e. before applying the transformation) and 
+	 * all classes names for the given output, which is related to the target 
+	 * program (i.e. after applying the transformation). */
 	public static void printPrograms(final File input, final File output) {
 		printSource(input);
 		printTarget(output);
 	}
 
-	private static void printTarget(final File output) {
+	private static void printTarget(final File program) {
+		final File targetProgram = program;
 		System.out.println("-----------------------------------------");
 		System.out.println("Target");
-		System.out.println(getProgramFrom(output));
-	}
-
-	public static void printSeparator() {
-		System.out.println("----------------");
+		printAllClassesNamesOf(targetProgram);
 	}
 	
-	private static void printSource(final File input) {
+	private static void printSource(final File program) {
+		final File sourceProgram = program; 
 		System.out.println("-----------------------------------------");
 		System.out.println("Source");
-		System.out.println(getProgramFrom(input));
+		printAllClassesNamesOf(sourceProgram);
+	}
+
+	private static void printAllClassesNamesOf(final File input) {
+		System.out.println(getAllClassesNames(input));
 	}	
 
-	public static String getProgramFrom(File path) {
+	/** 
+	 * For the given path, get all packages. After that,
+	 * get all classes names(i.e. all the identifiers) from each package and 
+	 * join them properly(break line between each name) as a String.
+	 * */
+	public static String getAllClassesNames(File path) {
 		
 		File[] packages = getPackagesFrom(path);
 
-		String result = getClassesNamesFrom(packages);
+		String result = getAllClassesIdentifiersFrom(packages);
 		
 		return result;
 	}
@@ -54,7 +67,7 @@ public class Util {
 		});
 	}
 
-	private static String getClassesNamesFrom(File[] packages) {
+	private static String getAllClassesIdentifiersFrom(File[] packages) {
 		
 		//StringBuilder is more coherent to be used because the entity below will change its value. 
 		StringBuilder result = new StringBuilder(StrUtil.EMPTY_STRING);

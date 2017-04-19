@@ -34,7 +34,7 @@ public class TSPFilter {
 			File messageFile = new File(out, StrUtil.REFACT_INAPPLICABLE);
 			String message = FileUtil.leArquivo(messageFile.getAbsolutePath());		
 			message = getMessageTemplate(message);
-			String program = Util.getProgramFrom(in);
+			String program = Util.getAllClassesNames(in);
 			program = test.getAbsolutePath() + "\n\n" + program;
 
 			Precondition precondValues = Precondition.getNamed(message);

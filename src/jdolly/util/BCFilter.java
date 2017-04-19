@@ -14,12 +14,16 @@ public class BCFilter {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/encapsulatefield/last/";
 		File[] tests = Util.getTestsFrom(path);
 
+		printTheTotalOfBehavioralChangesIn(tests);
+	}
+
+	private static void printTheTotalOfBehavioralChangesIn(File[] tests) {
 		int totalOfBehavioralChange = countTotalOfBehavioralChange(tests);
-		System.out.println(totalOfBehavioralChange);
+		System.out.println("Total of behavioral changes:" + totalOfBehavioralChange);
 	}
 
 	private static int countTotalOfBehavioralChange(File[] tests) {
-		int totalOfBehaviorChangeFails = 0;
+		int totalOfBehaviorChanges = 0;
 		
 		for (File test : tests) {
 			File in = new File(test, "in");
@@ -27,13 +31,17 @@ public class BCFilter {
 			File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE");
 			
 			if (bcSR1.exists()) {			
-				String program = Util.getProgramFrom(in);
-				System.out.println(test);
+				String program = Util.getAllClassesNames(in);
+				printFailedTest(test);
 				Util.printPrograms(in, out);
-				totalOfBehaviorChangeFails++;	
+				totalOfBehaviorChanges++;	
 				//}
 			}
 		}
-		return totalOfBehaviorChangeFails;
+		return totalOfBehaviorChanges;
+	}
+
+	private static void printFailedTest(File test) {
+		System.out.println(test);
 	}
 }
