@@ -23,14 +23,8 @@ public final class AlloyRunJava {
 	}
 
 	public static long run(final String theory) {		
-		A4Reporter report = new A4Reporter() {
-			@Override
-			public void warning(ErrorWarning msg) {
-				System.out.print("Relevance Warning:\n"
-						+ (msg.toString().trim()) + "\n\n");
-				System.out.flush();
-			}
-		};
+		
+		A4Reporter report = JDolly.createA4Reporter();
 
 		Util.printTheory(theory);
 				

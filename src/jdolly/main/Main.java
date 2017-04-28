@@ -25,47 +25,42 @@ public class Main {
 
 	public static void main(String[] args) {
 		parseArguments(args);
-		generator = JDollyFactory.getInstance().createJDolly(scope, theoryFile);
-		generatePrograms(true, true, false, maxPrograms, skip);
+		generator = JDollyFactory.createJDolly(scope, theoryFile);
+		ProgramDetailer programDetailer = 
+				new ProgramDetailer(/* print the Programs? = */ true, 
+									/* print the Logfiles? = */ true, 
+									/* check for compilation errors? = */ false);
+		generatePrograms(programDetailer, maxPrograms, skip);
 
 	}
 
-	public static void generatePrograms(boolean printPrograms,
-			boolean logFiles, boolean checkCompilationErrors, Long maxPrograms, int skip) {
+	public static void generatePrograms(ProgramDetailer programDetailer, Long maxPrograms, int skip) {
 
 		long count = 0;
 
 		TestLogger logger = new TestLogger(output);
-
+		
+		final boolean checkForCompilationErrors = programDetailer.shouldCheckForCompilationErrors();
+		
 		for (List<CompilationUnit> cus : generator) {
 			
 			count++;
 			
-			if (count % skip != 0) continue;
-			
-			if (maxPrograms != null && count == maxPrograms)
-				break;
-
-			if (printPrograms) {
-				for (CompilationUnit compilationUnit : cus) {
-					System.out.println(compilationUnit);
-				}
-
+			if (count % skip != 0){ 
+				continue;
 			}
-
-			if (logFiles)
-				logger.logGenerated(cus, checkCompilationErrors);
-
-			
-
+			if (maxPrograms != null && count == maxPrograms){
+				break;
+			}	
+			if (programDetailer.shouldPrintPrograms()) {
+				programDetailer.printPrograms(cus);
+			}
+			if (programDetailer.shouldPrintLogFiles()){
+				logger.logGenerated(cus, checkForCompilationErrors);
+			}	
 		}
-
-		if (checkCompilationErrors) {
-			System.out.println("número de erros de compilação: "
-					+ logger.getCompilererrors());
-			double per = (logger.getCompilererrors() * 100)
-					/ logger.getGeneratedCount();
-			System.out.println("porcentagem de erros de compilaÁ„o:" + per);
+		if (checkForCompilationErrors) {
+			ProgramDetailer.printCompilationErrorsRates(logger);
 		}
 
 	}

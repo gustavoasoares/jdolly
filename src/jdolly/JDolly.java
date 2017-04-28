@@ -218,9 +218,7 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 		this.maxFieldNames = maxFieldNames;
 	}
 
-
-	
-	protected A4Reporter createA4Reporter() {
+	protected static A4Reporter createA4Reporter() {
 		return new A4Reporter() {
 			@Override
 			public void warning(ErrorWarning msg) {
@@ -231,7 +229,7 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 		};
 	}
 	
-	protected Sig createSigByName(String name) {
+	protected Sig createSignatureBy(String name) {
 		Sig result = null;
 		for (Sig sig : javaMetamodel.getAllReachableSigs()) {
 			String label = sig.label.replaceAll("[^/]*/", "");

@@ -35,7 +35,6 @@ public class BCFilter {
 				printFailedTest(test);
 				Util.printPrograms(in, out);
 				totalOfBehaviorChanges++;	
-				//}
 			}
 		}
 		return totalOfBehaviorChanges;

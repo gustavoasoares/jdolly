@@ -54,45 +54,45 @@ public class JDollyImp extends JDolly {
 
 		List<CommandScope> result = new ArrayList<CommandScope>();
 
-		final Sig type = createSigByName("Class");
-		final Sig method = createSigByName("Method");
-		final Sig methodId = createSigByName("MethodId");
-		final Sig classId = createSigByName("ClassId");
-		final Sig package_ = createSigByName("Package");
-		final Sig body = createSigByName("Body");
-		final Sig field = createSigByName("Field");
-		final Sig fieldId = createSigByName("FieldId");
+		final Sig type = createSignatureBy("Class");
+		final Sig method = createSignatureBy("Method");
+		final Sig methodId = createSignatureBy("MethodId");
+		final Sig classId = createSignatureBy("ClassId");
+		final Sig package_ = createSignatureBy("Package");
+		final Sig body = createSignatureBy("Body");
+		final Sig field = createSignatureBy("Field");
+		final Sig fieldId = createSignatureBy("FieldId");
 
-		CommandScope packageScope = new CommandScope(package_,
+		final CommandScope packageScope = new CommandScope(package_,
 				isExactMaxPackages, maxPackages);
 		result.add(packageScope);
 
-		CommandScope typeScope = new CommandScope(type, isExactMaxClasses(),
+		final CommandScope typeScope = new CommandScope(type, isExactMaxClasses(),
 				maxClasses);
 		result.add(typeScope);
 
-		CommandScope classIdScope = new CommandScope(classId,
+		final CommandScope classIdScope = new CommandScope(classId,
 				isExactMaxClassNames, maxClassNames);
 		result.add(classIdScope);
 
-		CommandScope methodScope = new CommandScope(method, isExactMaxMethods,
+		final CommandScope methodScope = new CommandScope(method, isExactMaxMethods,
 				maxMethods);
 		result.add(methodScope);
 
-		CommandScope methodIdScope = new CommandScope(methodId,
+		final CommandScope methodIdScope = new CommandScope(methodId,
 				isExactMaxMethodNames, maxMethodNames);
 		result.add(methodIdScope);
 
-		CommandScope bodyScope = new CommandScope(body, isExactMethodBodyScope,
-				maxMethodBody);
+		final CommandScope bodyScope = new CommandScope(body, 
+				isExactMethodBodyScope, maxMethodBody);
 		result.add(bodyScope);
 
 		if (this.maxFields != null) {
-			CommandScope fieldScope = new CommandScope(field, isExactMaxFields,
+			final CommandScope fieldScope = new CommandScope(field, isExactMaxFields,
 					maxFields);
 			result.add(fieldScope);
 
-			CommandScope fieldIdScope = new CommandScope(fieldId,
+			final CommandScope fieldIdScope = new CommandScope(fieldId,
 					isExactMaxFieldnames, maxFieldNames);
 			result.add(fieldIdScope);
 
@@ -105,29 +105,39 @@ public class JDollyImp extends JDolly {
 	protected void initializeAlloyAnalyzer() {
 		// Alloy4 sends diagnostic messages and progress reports to the
 		// A4Reporter.
-		A4Reporter rep = createA4Reporter();
+		A4Reporter compilationIssuesReport = createA4Reporter();
 
 		try {
-
-			javaMetamodel = CompUtil.parseEverything_fromFile(rep, null,
-					alloyTheory);
-
-			for (Command command : javaMetamodel.getAllCommands()) {
-
-				ConstList<CommandScope> constList = createScopeList();
-
-				command = command.change(constList);
-
-				A4Options options = Util.defHowExecCommands();
-				
-				Util.printCommand(command);
-
-				currentAns = TranslateAlloyToKodkod.execute_command(rep,
-						javaMetamodel.getAllReachableSigs(), command, options);
-			}
+			defineCurrentAns(compilationIssuesReport);
 		} catch (Err e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void defineCurrentAns(A4Reporter compilationIssuesReport) throws Err, ErrorSyntax {
+		
+		javaMetamodel = CompUtil.parseEverything_fromFile(compilationIssuesReport, null,
+				alloyTheory);
+
+		for (Command currentCommand : javaMetamodel.getAllCommands()) {
+
+			Command currentCmdWithOtherScope = modifyCurrentCmdScope(currentCommand);
+
+			Util.printCommand(currentCmdWithOtherScope);
+			
+			A4Options options = Util.defHowExecCommands();
+
+			currentAns = TranslateAlloyToKodkod.execute_command(compilationIssuesReport,
+					javaMetamodel.getAllReachableSigs(), currentCmdWithOtherScope, options);
+		}
+	}
+
+	private Command modifyCurrentCmdScope(Command currentCommand) throws ErrorSyntax {
+		ConstList<CommandScope> constList = createScopeList();
+
+		Command currentCmdWithOtherScope = currentCommand.change(constList);
+		
+		return currentCmdWithOtherScope;
 	}
 
 }
