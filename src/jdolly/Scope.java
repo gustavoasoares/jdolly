@@ -37,6 +37,12 @@ public class Scope {
 	public void setMaxField(final int maxField) {
 		this.maxField = maxField;
 	}
+	@Override
+	public String toString() {
+		return "Scope: maxPackage=" + maxPackage + ", maxClass=" + maxClass + ", maxMethod=" + maxMethod + ", maxField="
+				+ maxField + "]";
+	}
+	
 	
 	
 }

@@ -11,6 +11,7 @@ import org.testorrery.Generator;
 import org.testorrery.IGenerator;
 
 import edu.mit.csail.sdg.alloy4.A4Reporter;
+import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
@@ -64,9 +65,6 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 	protected int maxFieldNames;
 	
 	
-	
-	 
-
 	public JDolly() {
 		super();
 	}
@@ -135,8 +133,6 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 	public void setExactMaxClasses(boolean isExactMaxClasses) {
 		this.isExactMaxClasses = isExactMaxClasses;
 	}
-
-
 
 	public int getMaxMethodNames() {
 		return maxMethodNames;
@@ -231,12 +227,12 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 	
 	protected Sig createSignatureBy(String name) {
 		Sig result = null;
-		for (Sig sig : javaMetamodel.getAllReachableSigs()) {
+		ConstList<Sig> sigsDefined = javaMetamodel.getAllReachableSigs();
+		for (Sig sig : sigsDefined) {
 			String label = sig.label.replaceAll("[^/]*/", "");
 			if (label.equals(name))
 				result = sig;
 		}
-
 		return result;
 	}
 

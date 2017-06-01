@@ -119,14 +119,13 @@ public class JDollyImp extends JDolly {
 		javaMetamodel = CompUtil.parseEverything_fromFile(compilationIssuesReport, null,
 				alloyTheory);
 
-		for (Command currentCommand : javaMetamodel.getAllCommands()) {
-
+		final ConstList<Command> commandsInModule = javaMetamodel.getAllCommands();
+		
+		for (Command currentCommand : commandsInModule) {
 			Command currentCmdWithOtherScope = modifyCurrentCmdScope(currentCommand);
-
 			Util.printCommand(currentCmdWithOtherScope);
 			
 			A4Options options = Util.defHowExecCommands();
-
 			currentAns = TranslateAlloyToKodkod.execute_command(compilationIssuesReport,
 					javaMetamodel.getAllReachableSigs(), currentCmdWithOtherScope, options);
 		}

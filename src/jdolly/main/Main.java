@@ -19,18 +19,24 @@ public class Main {
 	private static String output = "";
 	private static JDolly generator;
 	private static Scope scope;
-	private static int skip = 1;
-
+	private static int skipSize = 25;
+	private static ProgramDetailer programDetailer;
 	private static Long maxPrograms;
 
 	public static void main(String[] args) {
 		parseArguments(args);
+		
+		/*The scope below is used in the article "scaling testing of refactoring engines"*/
+		scope = new Scope(/* maxPackage = */ 2,
+						  /* maxClass = */ 3, 
+						  /* maxMethod = */ 3, 
+						  /* maxField = */ 2);
 		generator = JDollyFactory.createJDolly(scope, theoryFile);
-		ProgramDetailer programDetailer = 
-				new ProgramDetailer(/* print the Programs? = */ true, 
-									/* print the Logfiles? = */ true, 
-									/* check for compilation errors? = */ false);
-		generatePrograms(programDetailer, maxPrograms, skip);
+		
+		programDetailer = new ProgramDetailer(/* print the Programs? = */ true, 
+											  /* print the Logfiles? = */ true, 
+											  /* check for compilation errors? = */ false);
+		generatePrograms(programDetailer, maxPrograms, skipSize);
 
 	}
 
@@ -40,7 +46,7 @@ public class Main {
 
 		TestLogger logger = new TestLogger(output);
 		
-		final boolean checkForCompilationErrors = programDetailer.shouldCheckForCompilationErrors();
+		final boolean checkCompilationErrors = programDetailer.shouldCheckForCompilationErrors();
 		
 		for (List<CompilationUnit> cus : generator) {
 			
@@ -56,10 +62,10 @@ public class Main {
 				programDetailer.printPrograms(cus);
 			}
 			if (programDetailer.shouldPrintLogFiles()){
-				logger.logGenerated(cus, checkForCompilationErrors);
+				logger.logGenerated(cus, checkCompilationErrors);
 			}	
 		}
-		if (checkForCompilationErrors) {
+		if (checkCompilationErrors) {
 			ProgramDetailer.printCompilationErrorsRates(logger);
 		}
 
@@ -96,7 +102,7 @@ public class Main {
 				if (vflag)
 					System.out.println("addconstraints path= " + theoryFile);
 			} else if (arg.equals("-skip")) {
-				skip = Integer.parseInt(args[i++]);
+				skipSize = Integer.parseInt(args[i++]);
 			} else if (arg.equals("-output")) {
 				if (i < args.length)
 					output = args[i++];
@@ -122,9 +128,7 @@ public class Main {
 					System.err
 							.println("-scope requires number of packages, classes, methods, and fields");
 				if (vflag)
-					System.out.println("Scope= " + scope.getMaxPackage() + " "
-							+ scope.getMaxClass() + " " + scope.getMaxMethod()
-							+ " " + scope.getMaxField());
+					System.out.println(scope.toString());
 
 			}
 		}
