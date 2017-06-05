@@ -19,53 +19,54 @@ public class Main {
 	private static String output = "";
 	private static JDolly generator;
 	private static Scope scope;
-	private static int skip = 1;
-
+	private static int skipSize = 25;
+	private static ProgramDetailer programDetailer;
 	private static Long maxPrograms;
 
 	public static void main(String[] args) {
 		parseArguments(args);
-		generator = JDollyFactory.getInstance().createJDolly(scope, theoryFile);
-		generatePrograms(true, true, false, maxPrograms, skip);
+		
+		/*The scope below is used in the article "scaling testing of refactoring engines"*/
+		scope = new Scope(/* maxPackage = */ 2,
+						  /* maxClass = */ 3, 
+						  /* maxMethod = */ 3, 
+						  /* maxField = */ 2);
+		generator = JDollyFactory.createJDolly(scope, theoryFile);
+		
+		programDetailer = new ProgramDetailer(/* print the Programs? = */ true, 
+											  /* print the Logfiles? = */ true, 
+											  /* check for compilation errors? = */ false);
+		generatePrograms(programDetailer, maxPrograms, skipSize);
 
 	}
 
-	public static void generatePrograms(boolean printPrograms,
-			boolean logFiles, boolean checkCompilationErrors, Long maxPrograms, int skip) {
+	public static void generatePrograms(ProgramDetailer programDetailer, Long maxPrograms, int skip) {
 
 		long count = 0;
 
 		TestLogger logger = new TestLogger(output);
-
+		
+		final boolean checkCompilationErrors = programDetailer.shouldCheckForCompilationErrors();
+		
 		for (List<CompilationUnit> cus : generator) {
 			
 			count++;
 			
-			if (count % skip != 0) continue;
-			
-			if (maxPrograms != null && count == maxPrograms)
-				break;
-
-			if (printPrograms) {
-				for (CompilationUnit compilationUnit : cus) {
-					System.out.println(compilationUnit);
-				}
-
+			if (count % skip != 0){ 
+				continue;
 			}
-
-			if (logFiles)
+			if (maxPrograms != null && count == maxPrograms){
+				break;
+			}	
+			if (programDetailer.shouldPrintPrograms()) {
+				programDetailer.printPrograms(cus);
+			}
+			if (programDetailer.shouldPrintLogFiles()){
 				logger.logGenerated(cus, checkCompilationErrors);
-
-			
-
+			}	
 		}
-
 		if (checkCompilationErrors) {
-			System.out.println("número de erros de compilação: "
-					+ logger.getCompilererrors());
-			double per = (logger.getCompilererrors() * 100)
-					/ logger.getGeneratedCount();
-			System.out.println("porcentagem de erros de compilaÁ„o:" + per);
+			ProgramDetailer.printCompilationErrorsRates(logger);
 		}
 
 	}
@@ -101,7 +102,7 @@ public class Main {
 				if (vflag)
 					System.out.println("addconstraints path= " + theoryFile);
 			} else if (arg.equals("-skip")) {
-				skip = Integer.parseInt(args[i++]);
+				skipSize = Integer.parseInt(args[i++]);
 			} else if (arg.equals("-output")) {
 				if (i < args.length)
 					output = args[i++];
@@ -127,9 +128,7 @@ public class Main {
 					System.err
 							.println("-scope requires number of packages, classes, methods, and fields");
 				if (vflag)
-					System.out.println("Scope= " + scope.getMaxPackage() + " "
-							+ scope.getMaxClass() + " " + scope.getMaxMethod()
-							+ " " + scope.getMaxField());
+					System.out.println(scope.toString());
 
 			}
 		}

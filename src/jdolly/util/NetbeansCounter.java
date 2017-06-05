@@ -6,33 +6,40 @@ import java.io.FileFilter;
 public class NetbeansCounter {
 
 	public static void main(String[] args) {
-		
+		generateNetbeansExecutionRates();
+	}
+
+	private static void generateNetbeansExecutionRates() {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/renamefield/last";
-		File refactoring = new File(path);
-		File[] tests = refactoring.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.getName().startsWith("test"))
-					return true;
-				else
-					return false;
-			}
+		File[] tests = Util.getTestsFrom(path);
+		int totalOfProgNotRefactByNetbeans = calcTotalOfProgNotRefactByNetbeans(tests);
+		
+		printNetbeansExecutionRates(tests, totalOfProgNotRefactByNetbeans);
+	}
 
-		});
+	private static void printNetbeansExecutionRates(File[] tests, int totalOfProgNotRefactByNetbeans) {
+		printTotalOfPrograms(tests.length);
+		
+		printTotalOfProgNotRefactByNetbeans(totalOfProgNotRefactByNetbeans);
+	}
 
-		int count = 0;
-		int i = 0;
+	private static int calcTotalOfProgNotRefactByNetbeans(File[] tests) {
+		int totalOfProgNotRefactByNetbeans = 0;
 		
 		for (File test : tests) {
-			
 			File outNetBeans = new File(test,"out/netbeans");
-			
-			if ( !outNetBeans.exists())
-				count++;
-			i++;
-			
+			if ( !outNetBeans.exists()){
+				totalOfProgNotRefactByNetbeans++;
+			}
 		}
-		System.out.println("total de programas: " + i);
+		return totalOfProgNotRefactByNetbeans;
+	}
+
+	private static void printTotalOfProgNotRefactByNetbeans(int count) {
 		System.out.println("programs não refatorados pelo netbeans: " + count);
+	}
+
+	private static void printTotalOfPrograms(int i) {
+		System.out.println("total de programas: " + i);
 	}
 }

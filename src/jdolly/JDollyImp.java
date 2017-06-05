@@ -7,19 +7,18 @@ import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4.ErrorSyntax;
-import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.CommandScope;
-import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
+import jdolly.util.Util;
 
 public class JDollyImp extends JDolly {
 
-	public JDollyImp(String alloyTheory, int maxPackages, int maxClasses,
-			int maxMethods, int maxFields) {
+	public JDollyImp(final String alloyTheory, final int maxPackages, final int maxClasses,
+			final int maxMethods, final int maxFields) {
 		super();
 		this.alloyTheory = alloyTheory;
 		this.maxPackages = maxPackages;
@@ -33,8 +32,8 @@ public class JDollyImp extends JDolly {
 
 	}
 
-	public JDollyImp(String alloyTheory, Integer maxPackages,
-			int maxClasses, int maxMethods) {
+	public JDollyImp(final String alloyTheory, final Integer maxPackages,
+			final int maxClasses, final int maxMethods) {
 		super();
 		this.alloyTheory = alloyTheory;
 		this.maxPackages = maxPackages;
@@ -45,7 +44,7 @@ public class JDollyImp extends JDolly {
 		this.maxMethodBody = maxMethods;
 	}
 
-	public JDollyImp(String alloyTheory) {
+	public JDollyImp(final String alloyTheory) {
 		super();
 		this.alloyTheory = alloyTheory;
 
@@ -55,45 +54,45 @@ public class JDollyImp extends JDolly {
 
 		List<CommandScope> result = new ArrayList<CommandScope>();
 
-		Sig type = createSigByName("Class");
-		Sig method = createSigByName("Method");
-		Sig methodId = createSigByName("MethodId");
-		Sig classId = createSigByName("ClassId");
-		Sig package_ = createSigByName("Package");
-		Sig body = createSigByName("Body");
-		Sig field = createSigByName("Field");
-		Sig fieldId = createSigByName("FieldId");
+		final Sig type = createSignatureBy("Class");
+		final Sig method = createSignatureBy("Method");
+		final Sig methodId = createSignatureBy("MethodId");
+		final Sig classId = createSignatureBy("ClassId");
+		final Sig package_ = createSignatureBy("Package");
+		final Sig body = createSignatureBy("Body");
+		final Sig field = createSignatureBy("Field");
+		final Sig fieldId = createSignatureBy("FieldId");
 
-		CommandScope packageScope = new CommandScope(package_,
+		final CommandScope packageScope = new CommandScope(package_,
 				isExactMaxPackages, maxPackages);
 		result.add(packageScope);
 
-		CommandScope typeScope = new CommandScope(type, isExactMaxClasses(),
+		final CommandScope typeScope = new CommandScope(type, isExactMaxClasses(),
 				maxClasses);
 		result.add(typeScope);
 
-		CommandScope classIdScope = new CommandScope(classId,
+		final CommandScope classIdScope = new CommandScope(classId,
 				isExactMaxClassNames, maxClassNames);
 		result.add(classIdScope);
 
-		CommandScope methodScope = new CommandScope(method, isExactMaxMethods,
+		final CommandScope methodScope = new CommandScope(method, isExactMaxMethods,
 				maxMethods);
 		result.add(methodScope);
 
-		CommandScope methodIdScope = new CommandScope(methodId,
+		final CommandScope methodIdScope = new CommandScope(methodId,
 				isExactMaxMethodNames, maxMethodNames);
 		result.add(methodIdScope);
 
-		CommandScope bodyScope = new CommandScope(body, isExactMethodBodyScope,
-				maxMethodBody);
+		final CommandScope bodyScope = new CommandScope(body, 
+				isExactMethodBodyScope, maxMethodBody);
 		result.add(bodyScope);
 
 		if (this.maxFields != null) {
-			CommandScope fieldScope = new CommandScope(field, isExactMaxFields,
+			final CommandScope fieldScope = new CommandScope(field, isExactMaxFields,
 					maxFields);
 			result.add(fieldScope);
 
-			CommandScope fieldIdScope = new CommandScope(fieldId,
+			final CommandScope fieldIdScope = new CommandScope(fieldId,
 					isExactMaxFieldnames, maxFieldNames);
 			result.add(fieldIdScope);
 
@@ -106,35 +105,38 @@ public class JDollyImp extends JDolly {
 	protected void initializeAlloyAnalyzer() {
 		// Alloy4 sends diagnostic messages and progress reports to the
 		// A4Reporter.
-		A4Reporter rep = createA4Reporter();
+		A4Reporter compilationIssuesReport = createA4Reporter();
 
 		try {
-
-			javaMetamodel = CompUtil.parseEverything_fromFile(rep, null,
-					alloyTheory);
-
-			for (Command command : javaMetamodel.getAllCommands()) {
-
-				ConstList<CommandScope> constList = createScopeList();
-
-				command = command.change(constList);
-
-				// Choose some default options for how you want to execute the
-				// commands
-				A4Options options = new A4Options();
-				options.solver = A4Options.SatSolver.SAT4J;
-
-				// Execute the command
-				System.out.println("============ Command " + command
-						+ ": ============");
-
-				currentAns = TranslateAlloyToKodkod.execute_command(rep,
-						javaMetamodel.getAllReachableSigs(), command, options);
-			}
+			defineCurrentAns(compilationIssuesReport);
 		} catch (Err e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	private void defineCurrentAns(A4Reporter compilationIssuesReport) throws Err, ErrorSyntax {
+		
+		javaMetamodel = CompUtil.parseEverything_fromFile(compilationIssuesReport, null,
+				alloyTheory);
+
+		final ConstList<Command> commandsInModule = javaMetamodel.getAllCommands();
+		
+		for (Command currentCommand : commandsInModule) {
+			Command currentCmdWithOtherScope = modifyCurrentCmdScope(currentCommand);
+			Util.printCommand(currentCmdWithOtherScope);
+			
+			A4Options options = Util.defHowExecCommands();
+			currentAns = TranslateAlloyToKodkod.execute_command(compilationIssuesReport,
+					javaMetamodel.getAllReachableSigs(), currentCmdWithOtherScope, options);
+		}
+	}
+
+	private Command modifyCurrentCmdScope(Command currentCommand) throws ErrorSyntax {
+		ConstList<CommandScope> constList = createScopeList();
+
+		Command currentCmdWithOtherScope = currentCommand.change(constList);
+		
+		return currentCmdWithOtherScope;
 	}
 
 }

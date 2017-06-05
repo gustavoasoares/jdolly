@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import jdolly.util.StrUtil;
 import jdolly.visitors.ImportCheckerVisitor;
 import jdolly.visitors.ImportVisitor;
+import sun.misc.Signal;
 
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
@@ -41,9 +43,8 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
 
 public class AlloyToJavaTranslator {
-
-	// private static final String ALLOY_MODULE_NAME = "javametamodel";
-
+	// private final String ALLOY_MODULE_NAME = "javametamodel";
+	
 	public AlloyToJavaTranslator(A4Solution ans) {
 		this.ans = ans;
 	}
@@ -56,15 +57,18 @@ public class AlloyToJavaTranslator {
 
 		List<CompilationUnit> result = new ArrayList<CompilationUnit>();
 
+		PackageDeclaration packageDeclaration;
+		TypeDeclaration typeDeclaration;
+		CompilationUnit compilationUnit;
 		for (String c : getClasses()) {
 
-			PackageDeclaration packageDeclaration = getPackage(c);
+			packageDeclaration = getPackageByClassId(c);
 
 			// List<ImportDeclaration> importDeclarations = getImports(c);
 
-			TypeDeclaration typeDeclaration = getClass(c);
+			typeDeclaration = getClass(c);
 
-			CompilationUnit compilationUnit = ast.newCompilationUnit();
+			compilationUnit = ast.newCompilationUnit();
 
 			compilationUnit.setPackage(packageDeclaration);
 
@@ -76,12 +80,14 @@ public class AlloyToJavaTranslator {
 
 			result.add(compilationUnit);
 		}
-
+		ImportVisitor cv = new ImportVisitor();
+		PackageDeclaration packageOfCompUnit;
+		Name packageName;
 		// colocar imports
 		for (CompilationUnit cu : result) {
-			ImportVisitor cv = new ImportVisitor();
 			cu.accept(cv);
-			Name packageName = cu.getPackage().getName();
+			packageOfCompUnit = cu.getPackage();
+			packageName = packageOfCompUnit.getName();
 			// System.out.println("Superclass: " + cv.getSuperClassName());
 
 			List<String> importedPackages = new ArrayList<String>();
@@ -146,37 +152,30 @@ public class AlloyToJavaTranslator {
 	private List<String> getClasses() {
 		List<String> result = new ArrayList<String>();
 
-		Sig sig = getSig("Class");
+		Sig sig = getSig(StrUtil.CLASS_ENTITY);
 		List<String> classInstances = extractInstances(ans.eval(sig).toString());
 		result.addAll(classInstances);
 
 		return result;
 	}
-
+	
 	private TypeDeclaration getClass(String classId) {
 		TypeDeclaration result = ast.newTypeDeclaration();
 
-		Sig classSig = getSig("Class");
+		Sig classSig = getSig(StrUtil.CLASS_ENTITY);
 		SafeList<Field> classFields = classSig.getFields();
-		Field classIdRelations = getField("id", classFields);
-		Map<String, List<String>> classIdRel = getRelations(classIdRelations);
-
-		Field classExtendRel = getField("extend", classFields);
-		Map<String, List<String>> extendRel = getRelations(classExtendRel);
 		
-		Field classIsInterfaceRel = getField("isInterface", classFields);
+		Map<String, List<String>> classIdRel = getClassRelationsBy("id");
+		Map<String, List<String>> extendRel = getClassRelationsBy("extend");
 		
-		
-		Field classIsAbstractRel = getField("isAbstract", classFields);
-		
+		Field classIsInterfaceRel = getClassFieldsByCriteria("isInterface");
+		Field classIsAbstractRel = getClassFieldsByCriteria("isAbstract");
 		
 		//MOD1
-		Field classImplementRel = getField("implement", classFields);
+		Field classImplementRel = getClassFieldsByCriteria("implement");
 		if (classImplementRel != null) {
-			Map<String, List<String>> implementRel = getRelations(classImplementRel);
-//			if (implementRel.size() > 0) {
-//				System.out.println();
-//			}
+			Map<String, List<String>> implementRel = getClassRelationsBy("implement");
+
 			//MOD2
 			List<String> interface_ = implementRel.get(classId);
 			if (interface_ != null) {
@@ -185,9 +184,9 @@ public class AlloyToJavaTranslator {
 						.newSimpleName(interfaceName)));
 			}
 		}
-		//isInterface
+		//isInterface -> extract method: checkIfClassInterfRelIsNull
 		if (classIsInterfaceRel != null) {
-			Map<String, List<String>> IsInterfacRel = getRelations(classIsInterfaceRel);
+			Map<String, List<String>> IsInterfacRel = getMethodsRelationsBy("isInterface");
 			String isInterface = IsInterfacRel.get(classId).get(0);
 			boolean isInterface_ = isInterface.contains("True");
 			if (isInterface_) {
@@ -208,7 +207,7 @@ public class AlloyToJavaTranslator {
 
 		//isInterface
 		if (classIsAbstractRel != null) {
-			Map<String, List<String>> IsAbstractRel = getRelations(classIsAbstractRel);
+			Map<String, List<String>> IsAbstractRel = getMethodsRelationsBy("isAbstract");
 			String isAbstract = IsAbstractRel.get(classId).get(0);
 			boolean isAbstract_ = isAbstract.contains("True");
 			if (isAbstract_) {
@@ -254,30 +253,20 @@ public class AlloyToJavaTranslator {
 		List<String> methods = methodsMap.get(classId);
 
 		if (methods != null) {
-			Sig methodSig = getSig("Method");
-			SafeList<Field> mFields = methodSig.getFields();
-			Field mIdRelations = getField("id", mFields);
-			Map<String, List<String>> idRel = getRelations(mIdRelations);
-			Field mIsAbstractRelations = getField("isAbstract", mFields);
-			Field mArgRelations = getField("param", mFields);
-			Map<String, List<String>> argRel = getRelations(mArgRelations);
-			Field mVisRelations = getField("acc", mFields);
-			Map<String, List<String>> visRel = getRelations(mVisRelations);
-			Field mBodyRelations = getField("b", mFields);
-
-			Map<String, List<String>> bodyRel = getRelations(mBodyRelations);
+			
+			Map<String, List<String>> idRel = getMethodsRelationsBy("id");
+			Field mIsAbstractRelations = getMethodsFieldsByCriteria("isAbstract");
+			Map<String, List<String>> argRel = getMethodsRelationsBy("param");
+			Map<String, List<String>> visRel = getMethodsRelationsBy("acc");
+			Map<String, List<String>> bodyRel = getMethodsRelationsBy("b");
 
 			for (String method : methods) {
 				String id = idRel.get(method).get(0);
-				String arg = "";
-				if (argRel.containsKey(method))
-					arg = argRel.get(method).get(0);
+				String arg = setVisValue(argRel, method);
 
-				String vis = "";
-				if (visRel.containsKey(method))
-					vis = visRel.get(method).get(0);
+				String vis = setVisValue(visRel, method);
 
-				String isAbstract = "";
+				String isAbstract = StrUtil.EMPTY_STRING;
 				if (mIsAbstractRelations != null) {
 					Map<String, List<String>> isAbstractRel = getRelations(mIsAbstractRelations);
 					
@@ -324,89 +313,91 @@ public class AlloyToJavaTranslator {
 		return result;
 	}
 
+	private String getIdFromInvocation(Sig signature, String bodyId, String key){
+		SafeList<Field> sFields = signature.getFields();
+		Field idRelations = getField(key, sFields);
+		return getFieldInstance(idRelations, bodyId);
+		
+	}
+	
+	private String getQualifier(Sig signature, String bodyId){
+		SafeList<Field> sFields = signature.getFields();
+		Field qualRelations = getField("q", sFields);
+		return getFieldInstance(qualRelations, bodyId);
+	}
+	
 	private Expression getMethodBody(String bodyId, String classId) {
 
 		// String instanceName = bodyId.replaceAll("_[0-9]", "");
-
 		Sig s = null;
-		SafeList<Field> sFields = null;
-
+		Field idClassRelations = null;
+		Expression outputInvocationExp;
+		String fieldId;
+		String methodId;
+		String className;
+		String qualifier;
+		int posOfClassName = 0;
+		
 		// pega o nome da classe que contem o metodo para usar no qualified this
-		Sig classSig = getSig("Class");
+		Sig classSig = getSig(StrUtil.CLASS_ENTITY);
 		SafeList<Field> classFields = classSig.getFields();
 		Field classIdRelations = getField("id", classFields);
 		Map<String, List<String>> classIdRel = getRelations(classIdRelations);
-
-		//debug
-//		System.out.println("Body id: " + bodyId);
 		
+		/**to do:apply factory pattern to extract all the conditions from here
+		 * 
+		 * outputInvocation = Factory.getInvocation(bodyId,invocationName) 
+		 *  
+		 *  */
 		if (isInstanceOfType(bodyId, "MethodInvocation")) {
 			s = getSig("MethodInvocation");
-			sFields = s.getFields();
-			Field idRelations = getField("id", sFields);
-			String methodId = getFieldInstance(idRelations, bodyId);
-			Field qualRelations = getField("q", sFields);
-			String qualifier = getFieldInstance(qualRelations, bodyId);
-			String className = classIdRel.get(classId).get(0);
-			return getMethodInvocationExpression(methodId, qualifier, className);
+			methodId = getIdFromInvocation(s, bodyId, "id");
+			qualifier = getQualifier(s, bodyId);
+			className = classIdRel.get(classId).get(0);//possible violation of demeter's law
+			outputInvocationExp = getMethodInvocationExpression(methodId, qualifier, className);
 
 		} else if (isInstanceOfType(bodyId, "ConstructorMethodInvocation")) {
 			s = getSig("ConstructorMethodInvocation");
-			sFields = s.getFields();
-			Field idRelations = getField("idMethod", sFields);
-			String methodId = getFieldInstance(idRelations, bodyId);
-			Field idClassRelations = getField("idClass", sFields);
-			String className = getFieldInstance(idClassRelations, bodyId);
-			return getConstructorMethodInvocationExpression(methodId, className);
+			methodId = getIdFromInvocation(s, bodyId, "idMethod");
+			idClassRelations = getField("idClass", s.getFields());
+			className = getFieldInstance(idClassRelations, bodyId);
+			outputInvocationExp = getConstructorMethodInvocationExpression(methodId, className);
+			
 		} else if (isInstanceOfType(bodyId, "FieldInvocation")) {
 			s = getSig("FieldInvocation");
-			sFields = s.getFields();
-			Field idRelations = getField("id", sFields);
-			String fieldId = getFieldInstance(idRelations, bodyId);
-			Field qualRelations = getField("q", sFields);
-			String qualifier = getFieldInstance(qualRelations, bodyId);
-			String className = classIdRel.get(classId).get(0);
-			return getFieldInvocationExpression(fieldId, qualifier, className);
+			fieldId = getIdFromInvocation(s, bodyId, "id");
+			qualifier = getQualifier(s, bodyId);
+			className = classIdRel.get(classId).get(0);//possible violation of demeter's law
+			outputInvocationExp = getFieldInvocationExpression(fieldId, qualifier, className);
+			
 		} else if (isInstanceOfType(bodyId, "ConstructorFieldInvocation")) {
 			s = getSig("ConstructorFieldInvocation");
-			sFields = s.getFields();
-			Field idRelations = getField("idField", sFields);
-			String fieldId = getFieldInstance(idRelations, bodyId);
-			Field idClassRelations = getField("idClass", sFields);
-			String className = getFieldInstance(idClassRelations, bodyId);
-			return getConstructorFieldInvocationExpression(fieldId, className);
+			fieldId = getIdFromInvocation(s, bodyId, "id");
+			idClassRelations = getField("idClass", s.getFields());
+			className = getFieldInstance(idClassRelations, bodyId);
+			outputInvocationExp = getConstructorFieldInvocationExpression(fieldId, className);
+			
 		} else {
-			// System.out.println(bodyId);
-			// Random generator = new Random();
-			// int value = generator.nextInt(100);
 			String value = bodyId.toString();
 			value = value.replaceAll("(.)*_", "");
-			return ast.newNumberLiteral(value);
+			outputInvocationExp = ast.newNumberLiteral(value);
 		}
-
+		return outputInvocationExp;
 	}
 
+	// the auxiliary getIdFromInvocation can be used here as well
 	private boolean isInstanceOfType(String instance, String type) {
-		Sig s = getSig(type);
+		Sig signature = getSig(type);
+		boolean answer = true;
+		String emptyString = "";
 		
-		//debug 
-//		System.out.println("type: " + s);
-		
-		if (s == null)
-			return false;
-
-		SafeList<Field> sFields = s.getFields();
-		Field idRelations = getField("id", sFields);
-		
-		//debug
-//		System.out.println("sFieds: " + sFields);
-//		System.out.println("idRelations: "  + idRelations);
-		
-		String methodId = getFieldInstance(idRelations, instance);
-		
-		if (!methodId.equals(""))
-			return true;
-		return false;
+		if (signature == null){
+			answer = false;
+		}else{
+			String methodId = getIdFromInvocation(signature, instance, "id");
+			if (methodId.equals(emptyString))
+				answer = false;
+		}return answer;
 	}
 
 	private Expression getConstructorMethodInvocationExpression(
@@ -503,23 +494,20 @@ public class AlloyToJavaTranslator {
 	}
 
 	private Expression createParameter(String methodId, String classId) {
-		Sig classSig = getSig("Class");
-		SafeList<Field> cFields = classSig.getFields();
-		Field cIdRelations = getField("id", cFields);
-		Field cMethodsRelations = getField("methods", cFields);
 		
-		Sig methodSig = getSig("Method");
+		String parameterType = defParamType(methodId);
+
+		Expression parameter = initializerParam(parameterType);
 		
-		SafeList<Field> mFields = methodSig.getFields();
-		Field mIdRelations = getField("id", mFields);
-		
-		Map<String, List<String>> idRel = getRelations(mIdRelations);
-		
-		Field mArgRelations = getField("param", mFields);
-		Map<String, List<String>> argRel = getRelations(mArgRelations);
+		return parameter;
+	}
+
+	private String defParamType(String methodId) {
+		Map<String, List<String>> idRel = getMethodsRelationsBy("id");
+		Map<String, List<String>> argRel = getMethodsRelationsBy("param");
 
 		String parameterType = "";
-		boolean someMethodwithoutParameter = false;
+		boolean someMethodHasNotParam = false;
 		for (String s : idRel.keySet()) {
 //			System.out.println(s);
 			String methodId2 = idRel.get(s).get(0);
@@ -532,42 +520,43 @@ public class AlloyToJavaTranslator {
 					parameterType = argRel.get(s).get(0);
 					//break;
 				} else {
-					someMethodwithoutParameter = true;
+					someMethodHasNotParam = true;
 				}
 
 			}
 		}
-		if (someMethodwithoutParameter) parameterType = "";
+		if (someMethodHasNotParam) parameterType = "";
 //		System.out.println("=================");
+		return parameterType;
+	}
+	
+	private Expression createParameter(String methodId) {
 
-		Expression parameter = null;
-		if (parameterType.equals("Int__0") || parameterType.equals("Long__0")) {
-			parameter = ast.newNumberLiteral("2");
-		} else if (parameterType.length() > 0)
-			parameter = ast.newNullLiteral();
+		String parameterType = defineParamType(methodId);
+		Expression parameter = initializerParam(parameterType);
+		
 		return parameter;
 	}
 
-	private Expression createParameter(String methodId) {
-		// pegar parametros dos metodo
-		Sig methodSig = getSig("Method");
-		SafeList<Field> mFields = methodSig.getFields();
-		Field mIdRelations = getField("id", mFields);
-		Map<String, List<String>> idRel = getRelations(mIdRelations);
-		Field mArgRelations = getField("param", mFields);
-		Map<String, List<String>> argRel = getRelations(mArgRelations);
+	private String defineParamType(String methodId) {
+		Map<String, List<String>> idRel = getMethodsRelationsBy("id");
+		Map<String, List<String>> argRel = getMethodsRelationsBy("param");
 
 		String parameterType = "";
 		for (String s : idRel.keySet()) {
-			if (idRel.get(s).size() > 0 && idRel.get(s).get(0).equals(methodId)) {
+			boolean isSizeOfRelGreaterThanZero = idRel.get(s).size() > 0;
+			String firstRel = idRel.get(s).get(0);
+			if (isSizeOfRelGreaterThanZero && firstRel.equals(methodId)) {
 				if (argRel.containsKey(s)) {
 					parameterType = argRel.get(s).get(0);
 					break;
 				}
-
 			}
 		}
+		return parameterType;
+	}
 
+	private Expression initializerParam(String parameterType) {
 		Expression parameter = null;
 		if (parameterType.equals("Int__0") || parameterType.equals("Long__0")) {
 			parameter = ast.newNumberLiteral("2");
@@ -610,7 +599,7 @@ public class AlloyToJavaTranslator {
 	}
 
 	private BodyType setBodyType(String bodySig) {
-		BodyType result = null;
+		BodyType result = null; // se não for nenhuma das condições haverá NullPointerException
 
 		if (bodySig.startsWith("MethodInvocation"))
 			result = BodyType.METHOD_INVOCATION;
@@ -634,6 +623,7 @@ public class AlloyToJavaTranslator {
 
 	private List<FieldDeclaration> getClassFields(SafeList<Field> classFields,
 			String td) {
+		
 		List<FieldDeclaration> result = new ArrayList<FieldDeclaration>();
 
 		Field fieldsRel = getField("fields", classFields);
@@ -643,29 +633,16 @@ public class AlloyToJavaTranslator {
 		List<String> fields = fieldsMap.get(td);
 
 		if (fields != null) {
-			Sig fieldSig = getSig("Field");
-			SafeList<Field> fFields = fieldSig.getFields();
-			Field fIdRelations = getField("id", fFields);
-			Map<String, List<String>> idRel = getRelations(fIdRelations);
-			Field fTypeRelations = getField("type", fFields);
-			Map<String, List<String>> typeRel = getRelations(fTypeRelations);
-			Field fVisRelations = getField("acc", fFields);
-			Map<String, List<String>> visRel = getRelations(fVisRelations);
+			Map<String, List<String>> idRel = getFieldsRelationsBy("id");
+			Map<String, List<String>> typeRel = getFieldsRelationsBy("type");
+			Map<String, List<String>> visRel = getFieldsRelationsBy("acc");
 
 			for (String field : fields) {
 				String id = idRel.get(field).get(0);
 				String type = typeRel.get(field).get(0);
+				String vis = setVisValue(visRel, field);
 
-				String vis = "";
-				if (visRel.containsKey(field))
-					vis = visRel.get(field).get(0);
-
-				VariableDeclarationFragment fieldId = ast
-						.newVariableDeclarationFragment();
-				fieldId.setName(ast.newSimpleName(id.toLowerCase()));
-
-				FieldDeclaration fieldDeclaration = ast
-						.newFieldDeclaration(fieldId);
+				FieldDeclaration fieldDeclaration = getFieldDeclaration(id);
 
 				Modifier m = getAccessModifier(vis);
 				if (m != null)
@@ -677,43 +654,60 @@ public class AlloyToJavaTranslator {
 				// inicializa o field
 				VariableDeclarationFragment variable = (VariableDeclarationFragment) fieldDeclaration
 						.fragments().get(0);
-				Expression inializer;
-				if (type.equals("Int__0") || type.equals("Long__0")) {
-					// pega o valor que sera inicializado a partir da instï¿½ncia
-					String value = "1" + field.substring(field.length() - 1);
-					// Random generator = new Random();
-					// int value = generator.nextInt(100);
-					inializer = ast.newNumberLiteral(value);
-				} else
-					inializer = ast.newNullLiteral();
+				
+				Expression inializer = getInitializer(type,field);
 				variable.setInitializer(inializer);
 
 				result.add(fieldDeclaration);
 			}
 		}
-
 		return result;
+	}
+
+	private Expression getInitializer(String type, String field) {
+		Expression inializer;
+		if (type.equals("Int__0") || type.equals("Long__0")) {
+			// pega o valor que sera inicializado a partir da instï¿½ncia
+			String value = "1" + field.substring(field.length() - 1);
+			// Random generator = new Random();
+			// int value = generator.nextInt(100);
+			inializer = ast.newNumberLiteral(value);
+		} else
+			inializer = ast.newNullLiteral();
+		return inializer;
+	}
+
+	private FieldDeclaration getFieldDeclaration(String id) {
+		VariableDeclarationFragment fieldId = ast.newVariableDeclarationFragment();
+		
+		fieldId.setName(ast.newSimpleName(id.toLowerCase()));
+
+		FieldDeclaration fieldDeclaration = ast.newFieldDeclaration(fieldId);
+		return fieldDeclaration;
+	}
+
+	private String setVisValue(Map<String, List<String>> visRel, String field) {
+		String vis = StrUtil.EMPTY_STRING;
+		if (visRel.containsKey(field))
+			vis = visRel.get(field).get(0);
+		return vis;
 	}
 
 	private Type getType(String type) {
 		Type result = null;
 
-		// SimpleType newSimpleType = ast.newSimpleType(ast
-		// .newName("String");
-
 		if (type.equals("Long__0"))
 			result = ast.newPrimitiveType(PrimitiveType.LONG);
+		
 		else if (type.equals("Int__0"))
 			result = ast.newPrimitiveType(PrimitiveType.INT);
 
 		else {
-			Sig classSig = getSig("Class");
-			SafeList<Field> classFields = classSig.getFields();
-			Field classIdRelations = getField("id", classFields);
-			Map<String, List<String>> classRel = getRelations(classIdRelations);
+			Map<String, List<String>> classRel = getClassRelationsBy("id");
 			List<String> id = classRel.get(type);
 			if (id != null) {
-				result = ast.newSimpleType(ast.newName(id.get(0)));
+				String nameToNewType = id.get(0);
+				result = ast.newSimpleType(ast.newName(nameToNewType));
 			}
 		}
 		return result;
@@ -736,104 +730,137 @@ public class AlloyToJavaTranslator {
 
 	private List<ImportDeclaration> getImports(String classId) {
 		List<ImportDeclaration> result = new ArrayList<ImportDeclaration>();
-
-		Sig cuSig = getSig("Class");
-		SafeList<Field> cuFields = cuSig.getFields();
-		Field packageRelations = getField("imports", cuFields);
-		Map<String, List<String>> r = getRelations(packageRelations);
-		List<String> imported = r.get(classId);
+		
+		Map<String, List<String>> relationsByImport = getClassRelationsBy("imports");
+		List<String> imported = relationsByImport.get(classId);
 
 		if (imported != null) {
-			for (String importedPackage : imported) {
-				ImportDeclaration importDeclaration = ast
-						.newImportDeclaration();
-				importDeclaration.setName(ast.newSimpleName(importedPackage));
-				importDeclaration.setOnDemand(true);
+			for (String importedPack : imported) {
+				ImportDeclaration importDeclaration = defImportDeclaration(importedPack);
 				result.add(importDeclaration);
 			}
 		}
-
 		return result;
 	}
 
-	private PackageDeclaration getPackage(String classId) {
+	private ImportDeclaration defImportDeclaration(String importedPackage) {
+		ImportDeclaration importDeclaration = ast
+				.newImportDeclaration();
+		importDeclaration.setName(ast.newSimpleName(importedPackage));
+		importDeclaration.setOnDemand(true);
+		
+		return importDeclaration;
+	}
+
+	private Map<String, List<String>> getEntityRelatByCriteria(String criteria, String entity){
+		Sig entitySig = getSig(entity);
+		SafeList<Field> entityFields = entitySig.getFields();
+		Field entityRelatByCriteria = getField(criteria, entityFields);
+		
+		return getRelations(entityRelatByCriteria);
+	}
+	
+	private Field getEntityFieldsByCriteria(String criteria, String entity){
+		Sig entitySig = getSig(entity);
+		SafeList<Field> entityFields = entitySig.getFields();
+		Field entityFieldsByCriteria = getField(criteria, entityFields);
+		return entityFieldsByCriteria;
+	}
+		
+	private Map<String, List<String>> getMethodsRelationsBy(String criteria){		
+		return getEntityRelatByCriteria(criteria,StrUtil.METHOD_ENTITY);
+	}
+	
+	private Map<String, List<String>> getClassRelationsBy(String criteria){		
+		return getEntityRelatByCriteria(criteria,StrUtil.CLASS_ENTITY);
+	}
+	
+	private Map<String, List<String>> getFieldsRelationsBy(String criteria){		
+		return getEntityRelatByCriteria(criteria,StrUtil.FIELD_ENTITY);
+	}
+	
+	private Field getClassFieldsByCriteria(String criteria){
+		return getEntityFieldsByCriteria(criteria, StrUtil.CLASS_ENTITY);
+	}
+	
+	private Field getMethodsFieldsByCriteria(String criteria){
+		return getEntityFieldsByCriteria(criteria, StrUtil.METHOD_ENTITY);
+	}
+	
+	private Field getFieldsOfFieldByCriteria(String criteria){
+		return getEntityFieldsByCriteria(criteria, StrUtil.FIELD_ENTITY);
+	}
+	
+	private PackageDeclaration getPackageByClassId(String classId) {
 		PackageDeclaration result = ast.newPackageDeclaration();
 
-		Sig classSig = getSig("Class");
-		SafeList<Field> cFields = classSig.getFields();
-		Field packageRelations = getField("package", cFields);
-		Map<String, List<String>> r = getRelations(packageRelations);
-
-		String packageName = r.get(classId).get(0);
-
+		Map<String, List<String>> relations = getClassRelationsBy("package");
+		List<String> relationsByClassId = relations.get(classId);
+		String packageName = relationsByClassId.get(0);
+		
 		result.setName(ast.newSimpleName(packageName));
 
 		return result;
 	}
 
-	// private List<String> getCompilationUnits() {
-	// List<String> result = new ArrayList<String>();
-	//
-	// Sig sig = getSig("CompilationUnit");
-	// List<String> cuInstances = extractInstances(ans.eval(sig).toString());
-	// result.addAll(cuInstances);
-	//
-	// return result;
-	// }
+	private Field getField(String key, SafeList<Field> compUnitFields) {
+		Field result = null; //compUnitFields.get(0); // possível null pointer exception
 
-	private Field getField(String key, SafeList<Field> cuFields) {
-		Field result = null;
-
-		for (Field field : cuFields) {
-			if (field.toString().contains(key)) {
+		for (Field field : compUnitFields) {
+			String strRepresOfField = field.toString();
+			if (strRepresOfField.contains(key)) {
 				result = field;
 				break;
 			}
-
 		}
-
 		return result;
 	}
 
-	private Map<String, List<String>> getRelations(Field f) {
+	private Map<String, List<String>> getRelations(Field field) {
 		Map<String, List<String>> result = new HashMap<String, List<String>>();
-		if (f == null)
+
+		if (field == null)
 			return result;
 
-		String relations = ans.eval(f).toString();
-		relations = cleanName(relations);
+		String relations = ans.eval(field).toString();
+		String relationsCleaned = cleanName(relations);
 
-		if (relations.length() > 0) {
-			String[] arrayRelation = relations.split(",");
-
-			for (String relation : arrayRelation) {
-				String[] r = relation.split("->");
-				r[0] = r[0].replaceAll("javametamodel(.)*/", "");
-				r[1] = r[1].replaceAll("javametamodel(.)*/", "");
-
-				if (!result.containsKey(r[0])) {
-					ArrayList<String> values = new ArrayList<String>();
-
-					values.add(r[1]);
-					result.put(r[0], values);
-				} else {
-					result.get(r[0]).add(r[1]);
-				}
-			}
-
+		boolean relationsIsNotEmpty = relationsCleaned.length() > 0;	
+		if (relationsIsNotEmpty) {
+			String[] arrayRelation = relationsCleaned.split(StrUtil.COMMA_SYMBOL);
+			addRelationsToResult(result, arrayRelation);
 		}
-
 		return result;
 	}
 
-	private Sig getSig(String s) {
-		Sig result = null;
+	private void addRelationsToResult(Map<String, List<String>> result, String[] arrayRelation) {
+		String[] relatSplitted = {};
+		
+		for (String relation : arrayRelation) {
+			relatSplitted = relation.split(StrUtil.ARROW_RIGHT_SYMBOL);
+			relatSplitted[0] = relatSplitted[0].replaceAll(StrUtil.REGEX_JAVA_METAMODEL, StrUtil.EMPTY_STRING);
+			relatSplitted[1] = relatSplitted[1].replaceAll(StrUtil.REGEX_JAVA_METAMODEL, StrUtil.EMPTY_STRING);
 
+			if (!result.containsKey(relatSplitted[0])) {
+				List<String> values = new ArrayList<String>();
+				values.add(relatSplitted[1]);
+				result.put(relatSplitted[0], values);
+			} else {
+				List<String> relatSplittedValues = result.get(relatSplitted[0]);
+				relatSplittedValues.add(relatSplitted[1]);
+			}
+		}
+	}
+
+	private Sig getSig(String signature) {
+		Sig result=null;
 		SafeList<Sig> sigs = ans.getAllReachableSigs();
-
+		
+		//Sig result = sigs.get(0);
+		
 		for (Sig sig : sigs) {
 			String sigName = removeCrap(sig.toString());
-			if (sigName.equals(s)) {
+			if (sigName.equals(signature)) {
 				result = sig;
 				break;
 			}
@@ -842,35 +869,52 @@ public class AlloyToJavaTranslator {
 	}
 
 	private String removeCrap(String instance) {
-		instance = instance.replaceAll("[^/]*/", "");
-		return instance;
+		String aux = instance.replaceAll(StrUtil.REGEX_CRAP_SYMBOLS, StrUtil.EMPTY_STRING);
+		return aux;
 	}
 
 	private List<String> extractInstances(String labels) {
 		List<String> result = new ArrayList<String>();
-
+		
 		String instances = cleanName(labels);
-
-		if (instances.length() > 0) {
-
-			String[] types = instances.split(",");
-			char empty = ' ';
-			for (String typeName : types) {
-				if (typeName.charAt(0) == empty)
-					typeName = typeName.substring(1);
-				typeName = typeName.replaceAll("javametamodel(.)*/", "");
-				result.add(typeName);
-
-			}
+		
+		boolean instancesIsNotEmpty = instances.length() > 0;
+		
+		if (instancesIsNotEmpty) {
+			String[] types = instances.split(StrUtil.COMMA_SYMBOL);
+			result = addTypesToResult(types);
+		}
+		return result;
+	}
+	
+	private List<String> addTypesToResult(String[] types){
+		List<String> result = new ArrayList<String>();
+		
+		final char empty = ' ';
+		
+		final int beginIndex = 1;
+		final int firstPosition = 0;
+		
+		for (String typeName : types) {
+			if (typeName.charAt(firstPosition) == empty)
+				typeName = typeName.substring(beginIndex);
+			typeName = typeName.replaceAll("javametamodel(.)*/", StrUtil.EMPTY_STRING);
+			result.add(typeName);
 		}
 		return result;
 	}
 
-	public String cleanName(String name) {
-		String removeBraces = name.substring(1, name.length() - 1);
-		String replaceDollar = removeBraces.replace("$", "_");
-		String removeSpaces = replaceDollar.replaceAll(" ", "");
+	public String cleanName(final String name) {
+		final int beginIndex = 1;
+		final int endIndex = name.length() - 1;
+		
+		String removeBraces = name.substring(beginIndex, endIndex);
+		String replaceDollar = removeBraces.replace(StrUtil.DOLLAR_SYMBOL, StrUtil.UNDERSCORE_SYMBOL);
+		String removeSpaces = replaceDollar.replaceAll(StrUtil.SPACE_STRING, StrUtil.EMPTY_STRING);
+		
 		return removeSpaces;
 	}
 
 }
+
+	

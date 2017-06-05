@@ -54,10 +54,9 @@ public class JDollyTest {
 					+ ", package Package_0;\n"
 					+ "public class ClassId_1 extends ClassId_0 {\n" + "}\n"
 					+ ", package Package_0;\n" + "public class ClassId_0 {\n"
-					+ "  public int fieldid_1=10;\n"
 					+ "  public long methodid_0(){\n"
-					+ "    return fieldid_1;\n" + "  }\n" + "}\n" + "]";
-
+					+ "    return fieldid_1;\n" + "  }\n" 
+					+ "  public int fieldid_1=10;\n"+ "}\n" + "]";
 			assertEquals(expectedPorgram, cus.toString());
 		} else
 			fail();		

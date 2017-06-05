@@ -7,43 +7,50 @@ import java.io.*;
 
 public class FileUtil {
 
-	/**
-	 * @param path
-	 *            = diretorio base do projeto
-	 * @param result
-	 *            = armazenara o nome de todos os arquivos Java do diretorio
-	 * @param base
-	 *            = eh usado na recursao. Indica o nome base do pacote
-	 */
-	public static void getClasses(String path, Vector<String> result,
-			String base) {
+	public static void getClasses(String baseDirectoryOfProject, Vector<String> javaFilesNamesFromDirectory,
+			String baseNameOfPackage) {
 		
 		try {
-			File dir = new File(path);
-			File[] arquivos = dir.listFiles();
-			int tam = arquivos.length;
-			for (int i = 0; i < tam; i++) {
-				if (arquivos[i].isDirectory()) {
-					// adicionamos o subdiretorios
-					String baseTemp = base + arquivos[i].getName() + ".";
-					getClasses(arquivos[i].getAbsolutePath(), result, baseTemp);
-				} else {
-					// so consideramos arquivos java
-					if (arquivos[i].getName().endsWith(".class")) {
-						String temp = base + arquivos[i].getName();
-						temp = trataNome(temp);
-						result.add(temp);
-					}
-				}
-			}
+			getClassesNames(baseDirectoryOfProject, javaFilesNamesFromDirectory, baseNameOfPackage);
 		} catch (Exception e) {
-			System.err.println("Erro no metodo FileUtil.getClasses()");
+			printErrorInFileUtilMethod("getClasses()");
 			e.printStackTrace();
 		}
 	}
 
-	private static String trataNome(String arquivo) {
-		// remove a extens�o Java
+	private static void printErrorInFileUtilMethod(String methodName) {
+		System.err.println("Erro no metodo FileUtil." + methodName);
+	}
+
+	private static void getClassesNames(String path, Vector<String> result,
+			String base) {
+		File[] files = getFilesFrom(path);
+		int totalOfFiles = files.length;
+		for (int i = 0; i < totalOfFiles; i++) {
+			String actualFileName = files[i].getName();
+			String actualFileNameAndHisBasePackage = base + actualFileName;
+			if (files[i].isDirectory()) {
+				// adicionamos os subdiretorios
+				String baseTemp = actualFileNameAndHisBasePackage + StrUtil.DOT_SYMBOL;
+				getClasses(files[i].getAbsolutePath(), result, baseTemp);
+			} else {
+				// so consideramos arquivos java
+				final boolean isActualFileJavaFile = actualFileNameAndHisBasePackage.endsWith(StrUtil.CLASS_EXTENSION);
+				if (isActualFileJavaFile) {
+					String actualFileNameWithoutJavaExtension =  removeJavaExtension(actualFileNameAndHisBasePackage);
+					result.add(actualFileNameWithoutJavaExtension);
+				}
+			}
+		}
+	}
+
+	private static File[] getFilesFrom(String path) {
+		File dir = new File(path);
+		File[] arquivos = dir.listFiles();
+		return arquivos;
+	}
+
+	private static String removeJavaExtension(String arquivo) {
 		arquivo = arquivo.replaceAll(".class", "");
 		return arquivo;
 	}
@@ -52,48 +59,58 @@ public class FileUtil {
 		String arquivo;
 		for (int i = 0; i < result.size(); i++) {
 			arquivo = result.get(i);
-			System.out.print(trataNome(arquivo) + ", ");
+			System.out.print(removeJavaExtension(arquivo) + ", ");
 		}
 		System.out.println();
 	}
 
 	public static String leArquivo(String name) {
-		String result = "";
+		String result = StrUtil.EMPTY_STRING;
 		try {
-			FileReader fr = new FileReader(new File(name));
-			BufferedReader buf = new BufferedReader(fr);
-			while (buf.ready()) {
-				result += "\n" + buf.readLine();
-			}
+			result = readFile(name);
 		} catch (Exception e) {
-			System.err.println("Erro no metodo FileUtil.leArquivo()");
+			printErrorInFileUtilMethod("leArquivo()");
 			e.printStackTrace();
 		}
 		return result;
 	}
 
+	private static String readFile(String name) throws FileNotFoundException, IOException {
+		String result = StrUtil.EMPTY_STRING;
+		FileReader fr = new FileReader(new File(name));
+		BufferedReader buf = new BufferedReader(fr);
+		while (buf.ready()) {
+			result += "\n" + buf.readLine();
+		}
+		return result;
+	}
+
 	public static String leArquivoQuebraLinha(String name) {
-		String result = "";
-		StringBuffer fileData = new StringBuffer(1000);
-		BufferedReader reader;
+		String result = StrUtil.EMPTY_STRING;
+		
 		try {
-			reader = new BufferedReader(new FileReader(name));
-			char[] buf = new char[1024];
-			int numRead = 0;
-			while ((numRead = reader.read(buf)) != -1) {
-				fileData.append(buf, 0, numRead);
-			}
-			reader.close();
-			result = fileData.toString();
+			result = readFileWithBreakLine(name);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
 
+	}
+
+	private static String readFileWithBreakLine(String name) throws FileNotFoundException, IOException {
+		String result = StrUtil.EMPTY_STRING;;
+		StringBuffer fileData = new StringBuffer(1000);
+		BufferedReader reader = new BufferedReader(new FileReader(name));
+		char[] buf = new char[1024];
+		int numRead = 0;
+		while ((numRead = reader.read(buf)) != -1) {
+			fileData.append(buf, 0, numRead);
+		}
+		reader.close();
+		result = fileData.toString();
+		return result;
 	}
 
 	public static void gravaArquivo(String name, String texto) {
@@ -102,13 +119,17 @@ public class FileUtil {
 			fw.write(texto);
 			fw.close();
 		} catch (Exception e) {
-			System.err.println("Erro no metodo FileUtil.gravaArquivo()");
+			printErrorInFileUtilMethod("gravaArquivo()");
 			e.printStackTrace();
 		}
 	}
 
 	// testar o que foi feito
 	public static void main(String[] args) {
+		runFileUtil();
+	}
+
+	private static void runFileUtil() {
 		Vector<String> result = new Vector<String>();
 		String baseDir = "F:\\eclipse\\analyzer\\src";
 		getClasses(baseDir, result, "");
@@ -132,51 +153,58 @@ public class FileUtil {
 		if (!root.isDirectory() || !build.isDirectory() || !tests.isDirectory())
 			throw new Exception("Error while creating temporary folders");
 
-			
-		
-
 	}
 	
 	public static void copyFolder(File src, File dest)
 	    	throws IOException{
 	 
 	    	if(src.isDirectory()){
-	 
-	    		//if directory not exists, create it
 	    		if(!dest.exists()){
 	    		   dest.mkdir();
-	    		   System.out.println("Directory copied from " 
-	                              + src + "  to " + dest);
+	    		   printSuccessfulCopied("Directory", src, dest);
 	    		}
 	 
-	    		//list all the directory contents
-	    		String files[] = src.list();
+	    		String[] allFiles = src.list();
 	 
-	    		for (String file : files) {
-	    		   //construct the src and dest file structure
-	    		   File srcFile = new File(src, file);
-	    		   File destFile = new File(dest, file);
-	    		   //recursive copy
-	    		   copyFolder(srcFile,destFile);
+	    		for (String file : allFiles) {
+	    		   File srcFileStructure = new File(src, file);
+	    		   File destFileStructure = new File(dest, file);
+	    		   
+	    		   copyFolder(srcFileStructure,destFileStructure);
 	    		}
-	 
-	    	}else{
-	    		//if file, then copy it
-	    		//Use bytes stream to support all file types
-	    		InputStream in = new FileInputStream(src);
-	    	        OutputStream out = new FileOutputStream(dest); 
-	 
-	    	        byte[] buffer = new byte[1024];
-	 
-	    	        int length;
-	    	        //copy the file content in bytes 
-	    	        while ((length = in.read(buffer)) > 0){
-	    	    	   out.write(buffer, 0, length);
-	    	        }
-	 
-	    	        in.close();
-	    	        out.close();
-	    	        System.out.println("File copied from " + src + " to " + dest);
+	    	}else{	    		
+	    		copyFile(src, dest);
 	    	}
 	    }
+
+	private static void copyFile(File src, File dest) throws FileNotFoundException, IOException {
+		//Use bytes stream to support all file types
+		InputStream in = new FileInputStream(src);
+		OutputStream out = new FileOutputStream(dest); 
+ 
+		copyFileBitsFromInputStreamToOutputStream(in, out);
+ 
+		in.close();
+		out.close();
+		
+		printSuccessfulCopied("File", src, dest);
+	}
+
+	private static void printSuccessfulCopied(String entity, File src, File dest) {
+		System.out.println(entity + " copied from " + src + " to " + dest);
+	}
+	
+	public static void copyFileBitsFromInputStreamToOutputStream(
+			InputStream in, OutputStream out) throws IOException {
+		
+		byte[] buffer = new byte[1024];
+		int length;
+		//copy the file content in bytes 
+		while ((length = in.read(buffer)) > 0){
+		   out.write(buffer, 0, length);
+		}
+	}
+	
+	
+	
 }

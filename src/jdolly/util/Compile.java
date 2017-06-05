@@ -1,67 +1,78 @@
 package jdolly.util;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
-
-import org.apache.tools.ant.DefaultLogger;
-import org.apache.tools.ant.ProjectHelper;
-
 
 public class Compile {
 
 	public static String compile(String path) {
 		
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		ByteArrayOutputStream outError = new ByteArrayOutputStream();
+		ByteArrayOutputStream outputByteArray = new ByteArrayOutputStream();
+		ByteArrayOutputStream outputByteArrayError = new ByteArrayOutputStream();
 
-		PrintWriter pw = new PrintWriter(out);
-		PrintWriter pwerror = new PrintWriter(outError);
+		PrintWriter pw = new PrintWriter(outputByteArray);
+		PrintWriter pwerror = new PrintWriter(outputByteArrayError);
 
+		String commandLine = "-classpath rt.jar ";
 		org.eclipse.jdt.internal.compiler.batch.Main.compile(
-				"-classpath rt.jar " + path, pw, pwerror);
+				commandLine + path, pw, pwerror);
 
 		// System.out.println(out.toString());
-
 		// System.out.println(outError.toString());
-		return outError.toString();
+		return outputByteArrayError.toString();
 	}
 
 	public static void main(String[] args) {
+		generateCompileRates();
+	}
+
+	private static void generateCompileRates() {
 //		String path = "/private/var/folders/bx/bxpvKGfwF-yg3RjPZ5LRJk+++TI/-Tmp-/pullupfield0";
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfield/last";
-		File refactoring = new File(path);
-		File[] tests = refactoring.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				if (pathname.getName().startsWith("test"))
-					return true;
-				else
-					return false;
-			}
+		
+		File[] tests = Util.getTestsFrom(path);
+		
+		int totalOfCompilationErrors = countTotalOfCompilationErrors(tests);
+		
+		int totalOfPrograms = tests.length;
+		
+		printCompileRates(totalOfCompilationErrors, totalOfPrograms);
+	}
 
-		});
-		int i = 0;
-		int j = 0;
+	private static void printCompileRates(int totalOfCompilationErrors,	int totalOfPrograms) {
+		
+		printTotalOfGeneratedPrograms(totalOfPrograms);
+		
+		printTotalOfCompilationErrors(totalOfCompilationErrors);
+		
+		printThePercentageOfCompilationErrors(totalOfCompilationErrors, totalOfPrograms);
+	}
+
+	private static int countTotalOfCompilationErrors(File[] tests) {
+		int totalOfCompilationErrors = 0;
+		
 		for (File test : tests) {
 			File out = new File(test,"in");
 			String outputMsg = compile(out.toString());
             
             if (outputMsg.contains("ERROR in")) {
-            	i++;        	
+            	totalOfCompilationErrors++;        	
             }
-            j++;
 		}
-		System.out.println("total de programas gerados: " + j);
-		System.out.println("número de erros de compilação: " + i);
+		return totalOfCompilationErrors;
+	}
+
+	private static void printThePercentageOfCompilationErrors(int i, int j) {
 		double per = (i * 100) / j; 
 		System.out.println("porcentagem:" + per);
-		
-		
+	}
 
+	private static void printTotalOfCompilationErrors(int i) {
+		System.out.println("n≈ìmero de erros de compilaÔøΩ‚Äπo: " + i);
+	}
+
+	private static void printTotalOfGeneratedPrograms(int j) {
+		System.out.println("total de programas gerados: " + j);
 	}
 
 }
