@@ -12,7 +12,7 @@ public class NetbeansCounter {
 	private static void generateNetbeansExecutionRates() {
 		String path = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/renamefield/last";
 		File[] tests = Util.getTestsFrom(path);
-		int totalOfProgNotRefactByNetbeans = calcTotalOfProgNotRefactByNetbeans(tests);
+		int totalOfProgNotRefactByNetbeans = getNumOfProgNotRefactByNetbeans(tests);
 		
 		printNetbeansExecutionRates(tests, totalOfProgNotRefactByNetbeans);
 	}
@@ -23,7 +23,7 @@ public class NetbeansCounter {
 		printTotalOfProgNotRefactByNetbeans(totalOfProgNotRefactByNetbeans);
 	}
 
-	private static int calcTotalOfProgNotRefactByNetbeans(File[] tests) {
+	private static int getNumOfProgNotRefactByNetbeans(File[] tests) {
 		int totalOfProgNotRefactByNetbeans = 0;
 		
 		for (File test : tests) {

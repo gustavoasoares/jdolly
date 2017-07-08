@@ -12,43 +12,41 @@ public class EclipseOracle implements IOracle {
 	@Override
 	public void evaluateCorrectness(Map<String, Integer> problems, File test, File target) {
 		try {
-			FileReader in = new FileReader(target);
-			BufferedReader br = new BufferedReader(in);
-			String s;
-			
-			
-			//pega só o 1o. erro
-//			s = br.readLine();
-//			s = s.replaceAll(
-//					" [a-zA-Z0-9]+_[0-9][(]?[\\w]*[)]?", " ");
-			
-			//pega todos os errors
-			String x = "";
-			while ((s = br.readLine()) != null) {
-				s = s.replaceAll(
-						" [a-zA-Z0-9]+_[0-9][(]?[\\w]*[)]?", " ");
-				x = s;
-			}
-			if (problems.containsKey(x)) {
-				Integer integer = problems.get(x);
-				integer = integer + 1;
-				problems.put(x, integer);
-			} else {
-				System.out.println(test);
-				
-				problems.put(x, 1);
-			}
-
-			in.close();
+			getAllErros(problems, test, target);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
+	private void getAllErros(Map<String, Integer> problems, File test, File target)
+			throws FileNotFoundException, IOException {
+		FileReader in = new FileReader(target);
+		BufferedReader br = new BufferedReader(in);
+		String fileLine;
+		//pega só o 1o. erro
+//			s = br.readLine();
+//			s = s.replaceAll(
+//					" [a-zA-Z0-9]+_[0-9][(]?[\\w]*[)]?", " ");
+		
+		//pega todos os errors
+		String targetFileProblem = "";
+		while ((fileLine = br.readLine()) != null) {
+			targetFileProblem = removeKeywordsFrom(fileLine);
+		}
+		if (problems.containsKey(targetFileProblem)) {
+			Integer currTotalOfProb = problems.get(targetFileProblem);
+			Integer updatedTotalOfProb = currTotalOfProb + 1;
+			problems.put(targetFileProblem, updatedTotalOfProb);
+		} else {
+			problems.put(targetFileProblem, /* initial value = */ 1);
+			System.out.println(test);
+		}
+		in.close();
+	}
+
+	private String removeKeywordsFrom(String fileLine) {
+		return fileLine.replaceAll(" [a-zA-Z0-9]+_[0-9][(]?[\\w]*[)]?", " ");
+	}
 }

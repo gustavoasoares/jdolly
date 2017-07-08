@@ -26,7 +26,7 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 
 	protected A4Solution currentAns;
 
-	private boolean firstTime = true;
+	private boolean isFirstTime = true;
 
 	protected String alloyTheory;
 
@@ -64,7 +64,6 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 
 	protected int maxFieldNames;
 	
-	
 	public JDolly() {
 		super();
 	}
@@ -75,14 +74,12 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 	protected List<CompilationUnit> generateNext() {
 		currentProgram++;
 		
-
 		List<CompilationUnit> result = new ArrayList<CompilationUnit>();
 
 		System.out
 				.println("Program "
 						+ currentProgram);
 		
-
 		extractor = new AlloyToJavaTranslator(currentAns);
 		result = extractor.getJavaCode();
 
@@ -92,18 +89,24 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 	@Override
 	public boolean hasNext() {
 		// primeira vez
-		if (firstTime) initializeAlloyAnalyzer();
-		if (currentAns.satisfiable() && firstTime) {			
-			firstTime = false;
+		if (isFirstTime) {
+			initializeAlloyAnalyzer();
+		}
+		final boolean isCurrAnsSatisfiable = currentAns.satisfiable();
+		if (isCurrAnsSatisfiable && isFirstTime) {			
+			isFirstTime = false;
 			return true;
 		}
-		
-		if (maximumPrograms > 0 && maximumPrograms == currentProgram) return false;
+		final boolean isLastProgram = maximumPrograms > 0 && maximumPrograms == currentProgram;
+		if (isLastProgram) {
+			return false;
+		}
 
 		boolean result = true;
-		
 		try {
-			if (!currentAns.next().satisfiable() || currentAns.equals(currentAns.next()))
+			final boolean isNextAnsSatisfiable = currentAns.next().satisfiable();
+			final boolean isCurrAnsEqualToNextAns = currentAns.equals(currentAns.next());
+			if (!isNextAnsSatisfiable || isCurrAnsEqualToNextAns)
 				result = false;
 			
 			currentAns = currentAns.next();
@@ -116,8 +119,6 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 		return result;
 	}
 	
-
-
 	public int getMaxClassNames() {
 		return maxClassNames;
 	}
@@ -225,12 +226,12 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 		};
 	}
 	
-	protected Sig createSignatureBy(String name) {
+	protected Sig createSignatureBy(String entityName) {
 		Sig result = null;
 		ConstList<Sig> sigsDefined = javaMetamodel.getAllReachableSigs();
 		for (Sig sig : sigsDefined) {
 			String label = sig.label.replaceAll("[^/]*/", "");
-			if (label.equals(name))
+			if (label.equals(entityName))
 				result = sig;
 		}
 		return result;

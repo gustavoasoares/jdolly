@@ -31,7 +31,7 @@ public class BCReport {
 			File out = new File(test, "out/jrrt");
 //			File out2 = new File(test, "out/eclipse2");
 
-			File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE");
+			File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE"); //this is a dir for bc failure
 			File bcSR2 = new File(out, "BEHAVIORCHANGE_FAILURE2");
 			
 			if (bcSR1.exists() || bcSR2.exists()) {

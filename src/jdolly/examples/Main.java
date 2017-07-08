@@ -1,11 +1,8 @@
 package jdolly.examples;
-
+import jdolly.util.TimeInterval;
 
 
 public class Main {
-	
-
-	
 	
 	public static void main(String[] args) {
 	
@@ -13,8 +10,8 @@ public class Main {
 	long start = System.currentTimeMillis();
 	g.generatePrograms(true, true, false);
 	long stop = System.currentTimeMillis();
-	long total = stop - start;
-	System.out.println("Tempo: " + total);
+	TimeInterval timeInterval = new TimeInterval(start, stop);
+	System.out.println("Tempo: " + timeInterval.intervalInSecsToStr());
 	}
 	
 	

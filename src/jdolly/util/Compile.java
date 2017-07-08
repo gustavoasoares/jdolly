@@ -32,7 +32,7 @@ public class Compile {
 		
 		File[] tests = Util.getTestsFrom(path);
 		
-		int totalOfCompilationErrors = countTotalOfCompilationErrors(tests);
+		int totalOfCompilationErrors = getTotalOfCompilationErrors(tests);
 		
 		int totalOfPrograms = tests.length;
 		
@@ -48,7 +48,7 @@ public class Compile {
 		printThePercentageOfCompilationErrors(totalOfCompilationErrors, totalOfPrograms);
 	}
 
-	private static int countTotalOfCompilationErrors(File[] tests) {
+	private static int getTotalOfCompilationErrors(File[] tests) {
 		int totalOfCompilationErrors = 0;
 		
 		for (File test : tests) {

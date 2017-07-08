@@ -60,7 +60,11 @@ public class AlloyToJavaTranslator {
 		PackageDeclaration packageDeclaration;
 		TypeDeclaration typeDeclaration;
 		CompilationUnit compilationUnit;
-		for (String c : getClasses()) {
+		
+		
+		final List<String> classesInstances = getClassesInstances();
+		
+		for (String c : classesInstances) {
 
 			packageDeclaration = getPackageByClassId(c);
 
@@ -149,7 +153,7 @@ public class AlloyToJavaTranslator {
 		return importDeclaration;
 	}
 
-	private List<String> getClasses() {
+	private List<String> getClassesInstances() {
 		List<String> result = new ArrayList<String>();
 
 		Sig sig = getSig(StrUtil.CLASS_ENTITY);

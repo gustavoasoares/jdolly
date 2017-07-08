@@ -18,26 +18,31 @@ public class BCFilter {
 	}
 
 	private static void printTheTotalOfBehavioralChangesIn(File[] tests) {
-		int totalOfBehavioralChange = countTotalOfBehavioralChange(tests);
+		int totalOfBehavioralChange = getTotalOfBehavioralChange(tests);
 		System.out.println("Total of behavioral changes:" + totalOfBehavioralChange);
 	}
 
-	private static int countTotalOfBehavioralChange(File[] tests) {
+	private static int getTotalOfBehavioralChange(File[] tests) {
 		int totalOfBehaviorChanges = 0;
 		
 		for (File test : tests) {
 			File in = new File(test, "in");
 			File out = new File(test, "out/jrrt");
-			File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE");
+			File bcSR1 = getBCFailureDir(out);
 			
 			if (bcSR1.exists()) {			
 				String program = Util.getAllClassesNames(in);
 				printFailedTest(test);
-				Util.printPrograms(in, out);
+				Util.printPrograms(in, out); // print the programs from input and output dir
 				totalOfBehaviorChanges++;	
 			}
 		}
 		return totalOfBehaviorChanges;
+	}
+
+	private static File getBCFailureDir(File out) {
+		File bcSR1 = new File(out, "BEHAVIORCHANGE_FAILURE");
+		return bcSR1;
 	}
 
 	private static void printFailedTest(File test) {

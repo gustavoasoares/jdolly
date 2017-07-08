@@ -12,9 +12,7 @@ public class JDollyFactory {
 		return _instance;
 	}
 	
-	
 	public static JDolly createJDolly(Scope scope, String theory) {
-		
 		return getInstance().createJDollyAux(scope, theory);				
 	}
 
@@ -22,9 +20,9 @@ public class JDollyFactory {
 		if (scope == null)
 			return new JDollyImp(theory);			
 		if (scope.getMaxField() > 0)
-			return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(),scope.getMaxMethod(), scope.getMaxField());
+			return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(), scope.getMaxMethod(), scope.getMaxField());
 		
-		return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(),scope.getMaxMethod());
+		return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(), scope.getMaxMethod());
 	}
 
 }

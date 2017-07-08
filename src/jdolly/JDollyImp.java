@@ -47,7 +47,6 @@ public class JDollyImp extends JDolly {
 	public JDollyImp(final String alloyTheory) {
 		super();
 		this.alloyTheory = alloyTheory;
-
 	}
 
 	private ConstList<CommandScope> createScopeList() throws ErrorSyntax {
@@ -96,7 +95,6 @@ public class JDollyImp extends JDolly {
 					isExactMaxFieldnames, maxFieldNames);
 			result.add(fieldIdScope);
 
-			
 		}
 		return ConstList.make(result);
 	}
@@ -131,11 +129,9 @@ public class JDollyImp extends JDolly {
 		}
 	}
 
-	private Command modifyCurrentCmdScope(Command currentCommand) throws ErrorSyntax {
+	private Command modifyCurrentCmdScope(final Command currentCommand) throws ErrorSyntax {
 		ConstList<CommandScope> constList = createScopeList();
-
 		Command currentCmdWithOtherScope = currentCommand.change(constList);
-		
 		return currentCmdWithOtherScope;
 	}
 

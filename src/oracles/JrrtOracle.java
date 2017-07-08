@@ -66,15 +66,10 @@ public class JrrtOracle implements IOracle {
 				problems.put(x, 1);
 				System.out.println(test);
 			}
-
 			in.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

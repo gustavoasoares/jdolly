@@ -5,6 +5,7 @@ import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
 import edu.mit.csail.sdg.alloy4compiler.ast.Command;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
@@ -34,16 +35,19 @@ public final class AlloyRunJava {
 	}
 
 	private static long getTotalGenProgsBy(final String theory) throws Err {
-		A4Reporter report = JDolly.createA4Reporter();
-		A4Options options = Util.defHowExecCommands();
-		Module alloyModuleOfTheory = CompUtil.parseEverything_fromFile(report, null, theory);
-		ConstList<Command> commandsInModule = alloyModuleOfTheory.getAllCommands();
+		final A4Reporter report = JDolly.createA4Reporter();
+		final A4Options options = Util.defHowExecCommands();
+		final Module alloyModuleOfTheory = CompUtil.parseEverything_fromFile(report, null, theory);
+		final ConstList<Command> commandsInModule = alloyModuleOfTheory.getAllCommands();
+		final ConstList<Sig> sigsDefined = alloyModuleOfTheory.getAllReachableSigs();
+		
 		int currentGeneration = 0;
 		
 		for (Command currentCommand : commandsInModule) {
 			Util.printCommand(currentCommand);
+			
 			A4Solution ans = TranslateAlloyToKodkod.execute_command(report,
-					alloyModuleOfTheory.getAllReachableSigs(), currentCommand, options);
+					sigsDefined, currentCommand, options);
 
 			int totalOfSatisfiableAnswers = 1;
 			long timeBefore = System.currentTimeMillis();
@@ -61,7 +65,7 @@ public final class AlloyRunJava {
 			long timeAfter = System.currentTimeMillis();
 			
 			TimeInterval timeInterval = new TimeInterval(timeBefore, timeAfter);
-			printTotalOfSoluctions(totalOfSatisfiableAnswers, timeInterval);
+			printSoluctionsReport(totalOfSatisfiableAnswers, timeInterval);
 		}
 		return currentGeneration;
 	}
@@ -70,7 +74,7 @@ public final class AlloyRunJava {
 		System.out.println("Generation: " + currentGeneration);
 	}
 
-	private static void printTotalOfSoluctions(final int totalOfSoluctions, final TimeInterval timeInterval) {
+	private static void printSoluctionsReport(final int totalOfSoluctions, final TimeInterval timeInterval) {
 		System.out.println("The number of soluctions is: " + totalOfSoluctions + " in "
 				+ timeInterval.intervalInSecsToStr());
 	}
