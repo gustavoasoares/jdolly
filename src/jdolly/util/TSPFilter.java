@@ -16,16 +16,16 @@ public class TSPFilter {
 		File[] tests = Util.getTestsFrom(path);
 
 		for (File test : tests) {
-			existsTooStrongPreconditionIn(test);
+			checkForTSP(test);
 		}	
 		saveFileContentFrom(path);
 	}
 
-	/** Check if Too Strong Precondition exists in the given file. 
+	/** Check if Too Strong Precondition(TSP) exists in the given file. 
 	 * Too Strong Precondition means the precondition is 
 	 * very restrictive and complex to satisfy. As a result, it is difficult to guarantee behavior 
 	 * preservation.*/
-	private static void existsTooStrongPreconditionIn(File test) {
+	private static void checkForTSP(File test) {
 		File in = new File(test, "in");
 		File out = new File(test, "out/" + StrUtil.JRRT_REFACTORING_TOOLS);
 		File tooStrongPrecondition = new File(out, StrUtil.TOO_STRONG);
@@ -53,20 +53,20 @@ public class TSPFilter {
 	}
 
 	private static void saveFileContentFrom(String path) {
-		int i = 1;
+		int currentProgram = 1;
 		Enumeration pres = Precondition.getAll().elements();		
 		while (pres.hasMoreElements()) {
 			Precondition currentPrecondition = (Precondition) pres.nextElement();
 			printPreconditionDetails(currentPrecondition);
 			
 			//SALVA PROGRAMAS
-			String file = path + StrUtil.JRRT_REFACTORING_TOOLS + "_PRE" + i;
+			String file = path + StrUtil.JRRT_REFACTORING_TOOLS + "_PRE" + currentProgram;
 			String content = getProgramsContentFrom(currentPrecondition);
 			FileUtil.gravaArquivo(file, content);
 
 			Util.printSeparator();
 			
-			i++;
+			currentProgram++;
 		}
 	}
 

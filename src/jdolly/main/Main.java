@@ -129,13 +129,8 @@ public class Main {
 							.println("-scope requires number of packages, classes, methods, and fields");
 				if (vflag)
 					System.out.println(scope.toString());
-
 			}
 		}
-
-		// if (i == args.length || i == args.length)
-		// System.err
-		// .println("Usage: Main [-output path] [-addconstraints path]");
 
 	}
 

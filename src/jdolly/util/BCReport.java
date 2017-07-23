@@ -27,7 +27,7 @@ public class BCReport {
 		for (File test : tests) {
 			testRepresentation = test.toString();
 			
-			File in = new File(test, "in");
+			File in = new File(test, "in"); // test is the base dir for file creation
 			File out = new File(test, "out/jrrt");
 //			File out2 = new File(test, "out/eclipse2");
 

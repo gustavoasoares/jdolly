@@ -9,13 +9,13 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import oracles.IOracle;
+import oracles.AbstractOracle;
 import oracles.OracleFactory;
 
 public class Oracle {
 
-	private static IOracle _eclipseOracle = OracleFactory.createOracleFor("eclipse");
-	private static IOracle _jrrtOracle = OracleFactory.createOracleFor("jrrt");
+	private static AbstractOracle _eclipseOracle = OracleFactory.createOracleFor("eclipse");
+	private static AbstractOracle _jrrtOracle = OracleFactory.createOracleFor("jrrt");
 	
 	public static void behaviorchanges(String resultFolderPath) {
 		File resultFolder = new File(resultFolderPath);
@@ -34,17 +34,14 @@ public class Oracle {
 											+ test.getName();
 									copyDirectory(test, new File(pathname));
 								} catch (IOException e) {
-									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
 							}
 						}
 					}
-
 				}
 			}
 		}
-
 	}
 
 	public static void copyDirectory(File sourceLocation, File targetLocation)
@@ -53,11 +50,11 @@ public class Oracle {
 		if (sourceLocation.isDirectory()) {
 			if (!targetLocation.exists()) {
 				boolean mkdir = targetLocation.mkdir();
-				if (mkdir)
+				if (mkdir) {
 					System.out.println("copiado com sucesso");
-				else
+				} else {
 					System.out.println("problema ao copiar");
-				
+				}
 			}
 
 			String[] children = sourceLocation.list();
@@ -95,10 +92,9 @@ public class Oracle {
 				File target = new File(outEngine, problemFileName);
 
 				if (target.exists()) {
-					IOracle oracle = OracleFactory.createOracleFor(engine);
+					AbstractOracle oracle = OracleFactory.createOracleFor(engine);
 					oracle.evaluateCorrectness(problems, test, target);						
 				}
-				
 			}
 		}
 
@@ -147,9 +143,7 @@ public class Oracle {
 					if (testFolder.getName().equals("COMPILATION_ERROR")) {
 						_jrrtOracle.evaluateCorrectness(problems, testFolder, testFolder);
 					}
-
 				}
-
 			}
 		}
 		for (Map.Entry<String, Integer> problem : problems.entrySet()) {

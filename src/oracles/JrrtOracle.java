@@ -7,70 +7,61 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
-public class JrrtOracle implements IOracle {
+public class JrrtOracle extends AbstractOracle {
 
 	@Override
-	public void evaluateCorrectness(Map<String, Integer> problems, File test, File target) {
-		try {
-			FileReader in = new FileReader(target);
-			BufferedReader br = new BufferedReader(in);
-			String s;
-			String x = "";
-			boolean inclueAproxima = true;
-			boolean achouErro = false;
+	public void getAllErrors(Map<String, Integer> problems, File test, File target)
+			throws FileNotFoundException, IOException {
+		FileReader in = new FileReader(target);
+		String targetFileProb = getFileProblemAsString(in);
+		
+		updateProblems(problems, test, targetFileProb);
+		in.close();
+	}
 
-			while ((s = br.readLine()) != null) {
-				if (s.contains("^"))
-					continue;
-				// so conta o 1o. erro
-				if (s.contains("----------") && achouErro)
-					break;
-				if (s.contains("ERROR")) {
-					inclueAproxima = true;
-					achouErro = true;
-				}
+	private String getFileProblemAsString(FileReader in) throws IOException {
+		BufferedReader br = new BufferedReader(in);
+		String currFileLine;
+		String x = "";
+		boolean inclueAproxima = true;
+		boolean achouErro = false;
 
-				if (inclueAproxima) {
-					if (s.contains("WARNING"))
-						inclueAproxima = false;
-					else {
-						if (!s.contains("ERROR")
-								&& !s.contains("problem")) {
-							//para remover nome de classes e metodos
-//							s = s
-//									.replaceAll(
-//											"[(]?[(]?[a-zA-Z0-9]+_[0-9][(]?[(]?[\\w]*[)]?[\\w]*[)]?",
-//											" ");
-							//para remover o codigo que ocorre o problmea, deixar so a mensagem
-							if (s.contains(";"))
-								s = "";
-							else
-								s = s
-								.replaceAll(
-										"[(]?[(]?[a-zA-Z0-9]+_[0-9][(]?[(]?[\\w]*[)]?[\\w]*[)]?",
-										" ");
-								
-						} else
-							s = "ERROR";
-						x = x + "\n" + s;
-
+		while ((currFileLine = br.readLine()) != null) {
+			if (currFileLine.contains("^")) {
+				continue;
+			}
+			// so conta o 1o. erro
+			if (currFileLine.contains("----------") && achouErro) {
+				break;
+			}
+			if (currFileLine.contains("ERROR")) {
+				inclueAproxima = true;
+				achouErro = true;
+			} 
+			if (inclueAproxima) {
+				if (currFileLine.contains("WARNING")) {
+					inclueAproxima = false;
+				} else {
+					if (!currFileLine.contains("ERROR") && !currFileLine.contains("problem")) {
+						//para remover o codigo que ocorre o problema, deixar so a mensagem
+						if (currFileLine.contains(";")) {
+							currFileLine = "";
+						} else {
+							currFileLine = removeKeywordsFrom(currFileLine);
+						}	
+					} else {
+						currFileLine = "ERROR";
 					}
-
+					x = x + "\n" + currFileLine;
 				}
 			}
-			if (problems.containsKey(x)) {
-				Integer integer = problems.get(x);
-				integer = integer + 1;
-				problems.put(x, integer);
-			} else {
-				problems.put(x, 1);
-				System.out.println(test);
-			}
-			in.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
+		return x;
+	}
+
+	@Override
+	public String removeKeywordsFrom(String s) {
+		String fileLineClean = s.replaceAll("[(]?[(]?[a-zA-Z0-9]+_[0-9][(]?[(]?[\\w]*[)]?[\\w]*[)]?", " ");
+		return fileLineClean;
 	}
 }

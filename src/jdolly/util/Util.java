@@ -49,49 +49,50 @@ public class Util {
 	 * get all classes names(i.e. all the identifiers) from each package and 
 	 * join them properly(break line between each name) as a String.
 	 * */
-	public static String getAllClassesNames(File path) {
+	public static String getAllClassesNames(final File path) {
 		
-		File[] packages = getPackagesFrom(path);
+		final File[] packages = getPackagesFrom(path);
 
-		String result = getAllClassesIdentifiersFrom(packages);
+		final String result = getAllClassesIdentifiersFrom(packages);
 		
 		return result;
 	}
 
-	private static File[] getPackagesFrom(File path) {
+	private static File[] getPackagesFrom(final File path) {
 		return path.listFiles(new FileFilter() {
 			@Override
-			public boolean accept(File pathname) {
+			public boolean accept(final File pathname) {
 				return pathname.isDirectory();
 			}
 		});
 	}
 
-	private static String getAllClassesIdentifiersFrom(File[] packages) {
+	private static String getAllClassesIdentifiersFrom(final File[] packages) {
 		
-		//StringBuilder is more coherent to be used because the entity below will change its value. 
+		/*StringBuilder is more coherent to be used because 
+		 * the entity below will change its value.*/ 
 		StringBuilder result = new StringBuilder(StrUtil.EMPTY_STRING);
 		File[] classes;
 		
-		for (File pack : packages) {
+		for (final File pack : packages) {
 			classes = pack.listFiles(new FileFilter() {
 				@Override
-				public boolean accept(File pathname) {
-					String nameOfPath = pathname.getName();
-					return nameOfPath.endsWith(StrUtil.JAVA_EXTENSION);
+				public boolean accept(final File pathname) {
+					final String pathName = pathname.getName();
+					return pathName.endsWith(StrUtil.JAVA_EXTENSION);
 				}
 			});
-			for (File _class : classes) {
-				result.append(getClass(_class));
+			for (final File class_ : classes) {
+				result.append(getClass(class_));
 				result.append(StrUtil.BREAK_LINE);
 			}
 		}
 		return result.toString();
 	}
 
-	private static String getClass(File file) {
+	private static String getClass(final File file) {
 		String str;
-		StringBuilder result = new StringBuilder(StrUtil.EMPTY_STRING);
+		final StringBuilder result = new StringBuilder(StrUtil.EMPTY_STRING);
 		BufferedReader input;
 		try {
 			input = new BufferedReader(new FileReader(file));
@@ -110,17 +111,18 @@ public class Util {
 		return result.toString();
 	}
 
-	// This method can be used in BCReport, BCFilter, TSPFilter, NetbeansCounter, Compile e MoveResults. 
-	// Putting him may promote reuse.
-	public static File[] getTestsFrom(String path){
-		File refactoring = new File(path);
+	/* This method can be used in BCReport, BCFilter, 
+	 * TSPFilter, NetbeansCounter, Compile e MoveResults. 
+	 * Putting him may promote reuse.*/
+	public static File[] getTestsFrom(final String path){
+		final File refactoring = new File(path);
 		return getTestsFromFile(refactoring);
 	}
 	
-	private static File[] getTestsFromFile(File refactoring) {
-		File[] tests = refactoring.listFiles(new FileFilter() {
+	private static File[] getTestsFromFile(final File refactoring) {
+		final File[] tests = refactoring.listFiles(new FileFilter() {
 			@Override
-			public boolean accept(File pathname) {
+			public boolean accept(final File pathname) {
 				boolean answer = false;
 				String nameOfPath = pathname.getName();
 				if (nameOfPath.startsWith(StrUtil.TEST_PREFIX))
@@ -131,7 +133,8 @@ public class Util {
 		return tests;
 	}
 	
-	/** Use SAT4J, which is the default options for SAT Solver, to execute the commands.
+	/** Use SAT4J, which is the default options for 
+	 * SAT Solver, to execute the commands.
 	*/
 	public static A4Options defHowExecCommands() {
 		A4Options options = new A4Options();
@@ -139,30 +142,35 @@ public class Util {
 		return options;
 	}
 	
-	/** Print a human-readable summary for the given Run or Check command that is executed with 
+	/** Print a human-readable summary for the given 
+	 * Run or Check command that is executed with 
 	 * certain scope of Java Language.
-	 * For example: === Command Run show for 2 Package, 3 Class, 3 ClassId, 1 Method, 1 MethodId, 1 Body, 2 Field, 2 FieldId: ===*/
+	 * For example: === Command Run show for 2 Package, 3 Class, 
+	 * 3 ClassId, 1 Method, 1 MethodId, 1 Body, 2 Field, 2 FieldId: ===*/
 	public static void printCommand(final Command commandToPrint) {
 		System.out.println("=== Command " + commandToPrint
 				+ ": ===");
 	}
 	
-	/**This method print each problem and his amount. If you want to print the separator 
+	/**This method print each problem and his amount. 
+	 * If you want to print the separator 
 	 * between each problem, use "Yes" as value for 
 	 * hasSeparator parameter. "No", otherwise. */
-	public static void printEachProblem(Map<String, Integer> problems, 
-			String hasSeparator) {
-		for (Map.Entry<String, Integer> problem : problems.entrySet()) {
-			if(hasSeparator == "Yes"){
+	public static void printEachProblem(final Map<String, Integer> problems, final String hasSeparator) {
+		for (final Map.Entry<String, Integer> problem : problems.entrySet()) {
+			if ("Yes".equals(hasSeparator)) {
 				System.out.println(StrUtil.SEPARATOR);
 			}
 			System.out.println(problem.getKey() + ": " + problem.getValue());
 		}
 	}
-	/**Print the given theory. This theory is related to a alloy file which formally specifies 
+	/**Print the given theory. This theory is related to a 
+	 * alloy file which formally specifies 
 	 * certain constraint related to Java Language scope. 
-	 * For example: printTheory("alloyTheory/encapsulatefield_final.als") will output: === Parsing+Typechecking alloyTheory/encapsulatefield_final.als ===*/
-	public static void printTheory(String theory) {
+	 * For example: printTheory("alloyTheory/encapsulatefield_final.als") 
+	 * will output: 
+	 * === Parsing+Typechecking alloyTheory/encapsulatefield_final.als ===*/
+	public static void printTheory(final String theory) {
 		System.out.println("=== Parsing+Typechecking " + theory
 				+ " ===");
 	}

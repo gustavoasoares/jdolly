@@ -17,26 +17,31 @@ public class MoveResults {
 		
 		String pathTarget = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfield/last";
 		
-		int totalOfCopiedFiles = countHowManyFilesInTargetPathWereCopied(pathTarget);
+		int totalOfCopiedFiles = getTotalOfCopiedFilesIn(pathTarget);
 		
-		printTotalOfCopiedFiles(totalOfCopiedFiles);
+		printCopiedFilesReport(totalOfCopiedFiles);
 	}
 
-	private static int countHowManyFilesInTargetPathWereCopied(String pathTarget) {
+	private static int getTotalOfCopiedFilesIn(String targetPath) {
 		String pathSource = "/Users/gustavo/Doutorado/experiments/refactoring-constraints-new/pullupfieldjrrt/last";
 		File[] tests = Util.getTestsFrom(pathSource);
 		int count = 0;
 		for (File test : tests) {
 			File source = new File(test,"out/jrrt");
-			File targetDir = new File(pathTarget);
-			File targetTestDir = new File(targetDir,test.getName());
-			File target = new File(targetTestDir,"out/jrrt");
+			File target = getTargePathFor(targetPath, test);
 			
 			tryToCopyDirectory(source, target);
 			
 			count++;
 		}
 		return count;
+	}
+
+	private static File getTargePathFor(String pathTarget, File test) {
+		File targetDir = new File(pathTarget);
+		File targetTestDir = new File(targetDir,test.getName());
+		File target = new File(targetTestDir,"out/jrrt");
+		return target;
 	}	
 	
 	private static void tryToCopyDirectory(File source, File target) {
@@ -47,7 +52,7 @@ public class MoveResults {
 		}
 	}	
 	
-	private static void printTotalOfCopiedFiles(int count) {
+	private static void printCopiedFilesReport(int count) {
 		System.out
 				.println("programas copiados: " + count);
 	}

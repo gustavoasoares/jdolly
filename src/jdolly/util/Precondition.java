@@ -7,8 +7,6 @@ import java.util.List;
 
 public class Precondition {
 	
-	
-	
 	private String message;
 	
 	private List<String> programs;

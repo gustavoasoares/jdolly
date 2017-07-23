@@ -27,8 +27,8 @@ public class NetbeansCounter {
 		int totalOfProgNotRefactByNetbeans = 0;
 		
 		for (File test : tests) {
-			File outNetBeans = new File(test,"out/netbeans");
-			if ( !outNetBeans.exists()){
+			File outNetBeans = new File(test, "out/netbeans");
+			if (!outNetBeans.exists()) {
 				totalOfProgNotRefactByNetbeans++;
 			}
 		}

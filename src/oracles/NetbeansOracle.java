@@ -7,29 +7,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
-public class NetbeansOracle implements IOracle {
+public class NetbeansOracle extends AbstractOracle {
 
 	@Override
-	public void evaluateCorrectness(Map<String, Integer> problems, File test, File target) {
+	public void getAllErrors(Map<String, Integer> problems, File test, File target)
+			throws FileNotFoundException, IOException {
+		FileReader in = new FileReader(target);
+		String targetFileProb = getFileProblemAsString(in);
 		
-		try {
-			FileReader in = new FileReader(target);
-			String targetFileProb = getFileProblemAsString(in);
-			if (problems.containsKey(targetFileProb)) {
-				Integer integer = problems.get(targetFileProb);
-				integer = integer + 1;
-				problems.put(targetFileProb, integer);
-			} else {
-				problems.put(targetFileProb, 1);
-				System.out.println(test);
-			}
-			in.close();
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		updateProblems(problems, test, targetFileProb);
+		in.close();
 	}
 
 	private String getFileProblemAsString(FileReader in) throws IOException {
@@ -38,10 +25,10 @@ public class NetbeansOracle implements IOracle {
 		String x = "";
 		
 		while ((fileLine = br.readLine()) != null) {
-			if(shouldSkip(fileLine)){
+			if (shouldSkip(fileLine)) {
 				continue;
 			}
-			fileLine = removeKeywords(fileLine);
+			fileLine = removeKeywordsFrom(fileLine);
 
 			x = x + fileLine + "\n";
 			break;
@@ -49,18 +36,20 @@ public class NetbeansOracle implements IOracle {
 		return x;
 	}
 
-	private boolean shouldSkip(String fileLine){
+	private boolean shouldSkip(String fileLine) {
 		return fileLine.contains("^") || !fileLine.contains("javac") || 
 				fileLine.contains("warning") || fileLine.contains("Compiling");
 	}
 	
-	private String removeKeywords(String fileLine) {
+	@Override
+	public String removeKeywordsFrom(String fileLine) {
 		String s = fileLine;
 		s = s.replaceAll("[.]*:[1-9]+:", "");
 		s = s.replaceAll("[.]*.java", "");
 		s = s.replaceAll("P[1-2]_0/Class[1-3]_0", "");
 		s = s.replaceAll("P[1-2]_0.Class[1-3]_0", "");
 		s = s.replaceAll("[a-z]_0\\([a-z]*\\)", "");
+		
 		return s;
 	}
 	

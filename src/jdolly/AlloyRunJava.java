@@ -55,10 +55,11 @@ public final class AlloyRunJava {
 			while (ans != null) {
 				printGeneration(currentGeneration);
 				ans = ans.next();
-				if (ans.satisfiable())
+				if (ans.satisfiable()) {
 					totalOfSatisfiableAnswers++;
-				else
+				} else {
 					break;
+				}	
 				currentGeneration++;
 			}
 			
