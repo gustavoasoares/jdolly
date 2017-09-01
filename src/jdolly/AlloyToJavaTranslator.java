@@ -4,7 +4,6 @@ import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
-import jdolly.util.StrUtil;
 import jdolly.visitors.ImportCheckerVisitor;
 import jdolly.visitors.ImportVisitor;
 import org.eclipse.jdt.core.dom.*;
@@ -16,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class AlloyToJavaTranslator {
+
 	// private final String ALLOY_MODULE_NAME = "javametamodel";
 	
 	public AlloyToJavaTranslator(A4Solution ans) {
@@ -129,8 +129,8 @@ public class AlloyToJavaTranslator {
 	private List<String> getClassesInstances() {
 		List<String> result = new ArrayList<String>();
 
-		Sig sig = getSig(StrUtil.CLASS_ENTITY);
-		List<String> classInstances = extractInstances(ans.eval(sig).toString());
+		Sig sig = getSig("Class");
+		List<String> classInstances = AlloyToJavaUtil.extractInstances(ans.eval(sig).toString());
 		result.addAll(classInstances);
 
 		return result;
@@ -139,7 +139,7 @@ public class AlloyToJavaTranslator {
 	private TypeDeclaration getClass(String classId) {
 		TypeDeclaration result = ast.newTypeDeclaration();
 
-		Sig classSig = getSig(StrUtil.CLASS_ENTITY);
+		Sig classSig = getSig("Class");
 		SafeList<Field> classFields = classSig.getFields();
 		
 		Map<String, List<String>> classIdRel = getClassRelationsBy("id");
@@ -243,7 +243,7 @@ public class AlloyToJavaTranslator {
 
 				String vis = setVisValue(visRel, method);
 
-				String isAbstract = StrUtil.EMPTY_STRING;
+				String isAbstract = "";
 				if (mIsAbstractRelations != null) {
 					Map<String, List<String>> isAbstractRel = getRelations(mIsAbstractRelations);
 					
@@ -316,7 +316,7 @@ public class AlloyToJavaTranslator {
 		int posOfClassName = 0;
 		
 		// pega o nome da classe que contem o metodo para usar no qualified this
-		Sig classSig = getSig(StrUtil.CLASS_ENTITY);
+		Sig classSig = getSig("Class");
 		SafeList<Field> classFields = classSig.getFields();
 		Field classIdRelations = getField("id", classFields);
 		Map<String, List<String>> classIdRel = getRelations(classIdRelations);
@@ -499,7 +499,6 @@ public class AlloyToJavaTranslator {
 				} else {
 					someMethodHasNotParam = true;
 				}
-
 			}
 		}
 		if (someMethodHasNotParam) parameterType = "";
@@ -509,13 +508,13 @@ public class AlloyToJavaTranslator {
 	
 	private Expression createParameter(String methodId) {
 
-		String parameterType = defineParamType(methodId);
+		String parameterType = getParamType(methodId);
 		Expression parameter = initializerParam(parameterType);
 		
 		return parameter;
 	}
 
-	private String defineParamType(String methodId) {
+	private String getParamType(String methodId) {
 		Map<String, List<String>> idRel = getMethodsRelationsBy("id");
 		Map<String, List<String>> argRel = getMethodsRelationsBy("param");
 
@@ -664,7 +663,7 @@ public class AlloyToJavaTranslator {
 	}
 
 	private String setVisValue(Map<String, List<String>> visRel, String field) {
-		String vis = StrUtil.EMPTY_STRING;
+		String vis = "";
 		if (visRel.containsKey(field))
 			vis = visRel.get(field).get(0);
 		return vis;
@@ -675,7 +674,7 @@ public class AlloyToJavaTranslator {
 
 		if (type.equals("Long__0"))
 			result = ast.newPrimitiveType(PrimitiveType.LONG);
-		
+
 		else if (type.equals("Int__0"))
 			result = ast.newPrimitiveType(PrimitiveType.INT);
 
@@ -745,27 +744,27 @@ public class AlloyToJavaTranslator {
 	}
 		
 	private Map<String, List<String>> getMethodsRelationsBy(String criteria){		
-		return getEntityRelatByCriteria(criteria,StrUtil.METHOD_ENTITY);
+		return getEntityRelatByCriteria(criteria, "Method");
 	}
 	
 	private Map<String, List<String>> getClassRelationsBy(String criteria){		
-		return getEntityRelatByCriteria(criteria,StrUtil.CLASS_ENTITY);
+		return getEntityRelatByCriteria(criteria, "Class");
 	}
 	
 	private Map<String, List<String>> getFieldsRelationsBy(String criteria){		
-		return getEntityRelatByCriteria(criteria,StrUtil.FIELD_ENTITY);
+		return getEntityRelatByCriteria(criteria, "Field");
 	}
 	
 	private Field getClassFieldsByCriteria(String criteria){
-		return getEntityFieldsByCriteria(criteria, StrUtil.CLASS_ENTITY);
+		return getEntityFieldsByCriteria(criteria, "Class");
 	}
 	
 	private Field getMethodsFieldsByCriteria(String criteria){
-		return getEntityFieldsByCriteria(criteria, StrUtil.METHOD_ENTITY);
+		return getEntityFieldsByCriteria(criteria, "Method");
 	}
 	
 	private Field getFieldsOfFieldByCriteria(String criteria){
-		return getEntityFieldsByCriteria(criteria, StrUtil.FIELD_ENTITY);
+		return getEntityFieldsByCriteria(criteria, "Field");
 	}
 	
 	private PackageDeclaration getPackageByClassId(String classId) {
@@ -800,11 +799,11 @@ public class AlloyToJavaTranslator {
 			return result;
 
 		String relations = ans.eval(field).toString();
-		String relationsCleaned = cleanName(relations);
+		String relationsCleaned = AlloyToJavaUtil.cleanName(relations);
 
 		boolean relationsIsNotEmpty = relationsCleaned.length() > 0;	
 		if (relationsIsNotEmpty) {
-			String[] arrayRelation = relationsCleaned.split(StrUtil.COMMA_SYMBOL);
+			String[] arrayRelation = relationsCleaned.split(",");
 			addRelationsToResult(result, arrayRelation);
 		}
 		return result;
@@ -814,9 +813,9 @@ public class AlloyToJavaTranslator {
 		String[] relatSplitted = {};
 		
 		for (String relation : arrayRelation) {
-			relatSplitted = relation.split(StrUtil.ARROW_RIGHT_SYMBOL);
-			relatSplitted[0] = relatSplitted[0].replaceAll(StrUtil.REGEX_JAVA_METAMODEL, StrUtil.EMPTY_STRING);
-			relatSplitted[1] = relatSplitted[1].replaceAll(StrUtil.REGEX_JAVA_METAMODEL, StrUtil.EMPTY_STRING);
+			relatSplitted = relation.split("->");
+			relatSplitted[0] = relatSplitted[0].replaceAll("javametamodel(.)*/", "");
+			relatSplitted[1] = relatSplitted[1].replaceAll("javametamodel(.)*/", "");
 
 			if (!result.containsKey(relatSplitted[0])) {
 				List<String> values = new ArrayList<String>();
@@ -836,7 +835,7 @@ public class AlloyToJavaTranslator {
 		//Sig result = sigs.get(0);
 		
 		for (Sig sig : sigs) {
-			String sigName = removeCrap(sig.toString());
+			String sigName = AlloyToJavaUtil.removeCrap(sig.toString());
 			if (sigName.equals(signature)) {
 				result = sig;
 				break;
@@ -844,54 +843,6 @@ public class AlloyToJavaTranslator {
 		}
 		return result;
 	}
-
-	private String removeCrap(String instance) {
-		String aux = instance.replaceAll(StrUtil.REGEX_CRAP_SYMBOLS, StrUtil.EMPTY_STRING);
-		return aux;
-	}
-
-	private List<String> extractInstances(String labels) {
-		List<String> result = new ArrayList<String>();
-		
-		String instances = cleanName(labels);
-		
-		boolean instancesIsNotEmpty = instances.length() > 0;
-		
-		if (instancesIsNotEmpty) {
-			String[] types = instances.split(StrUtil.COMMA_SYMBOL);
-			result = addTypesToResult(types);
-		}
-		return result;
-	}
-	
-	private List<String> addTypesToResult(String[] types){
-		List<String> result = new ArrayList<String>();
-		
-		final char empty = ' ';
-		
-		final int beginIndex = 1;
-		final int firstPosition = 0;
-		
-		for (String typeName : types) {
-			if (typeName.charAt(firstPosition) == empty)
-				typeName = typeName.substring(beginIndex);
-			typeName = typeName.replaceAll("javametamodel(.)*/", StrUtil.EMPTY_STRING);
-			result.add(typeName);
-		}
-		return result;
-	}
-
-	public String cleanName(final String name) {
-		final int beginIndex = 1;
-		final int endIndex = name.length() - 1;
-		
-		String removeBraces = name.substring(beginIndex, endIndex);
-		String replaceDollar = removeBraces.replace(StrUtil.DOLLAR_SYMBOL, StrUtil.UNDERSCORE_SYMBOL);
-		String removeSpaces = replaceDollar.replaceAll(StrUtil.SPACE_STRING, StrUtil.EMPTY_STRING);
-		
-		return removeSpaces;
-	}
-
 }
 
 	
