@@ -1,28 +1,34 @@
 package jdolly;
 
-public class JDollyFactory {
+public final class JDollyFactory {
 	
-	private static JDollyFactory _instance = null;
+	private static JDollyFactory jDollyInstance = null;
 	
 	private JDollyFactory() {};
 	
 	public static JDollyFactory getInstance() {
-		if (_instance == null)
-			_instance = new JDollyFactory();
-		return _instance;
+		if (jDollyInstance == null) {
+			jDollyInstance = new JDollyFactory();
+		}
+		return jDollyInstance;
 	}
 	
-	public static JDolly createJDolly(Scope scope, String theory) {
+	public static JDolly createJDolly(final Scope scope, final String theory) {
 		return getInstance().createJDollyAux(scope, theory);				
 	}
 
-	private JDolly createJDollyAux(Scope scope, String theory) {
-		if (scope == null)
-			return new JDollyImp(theory);			
-		if (scope.getMaxField() > 0)
-			return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(), scope.getMaxMethod(), scope.getMaxField());
-		
-		return new JDollyImp(theory, scope.getMaxPackage(), scope.getMaxClass(), scope.getMaxMethod());
+	private JDolly createJDollyAux(final Scope scope, final String theory) {
+		if (scope == null) {
+			return new JDollyImp(theory);
+		}
+		if (scope.getMaxField() > 0) {
+			return new JDollyImp(theory, scope.getMaxPackage(),
+					scope.getMaxClass(),
+					scope.getMaxMethod(),
+					scope.getMaxField());
+		}
+		return new JDollyImp(theory, scope.getMaxPackage(),
+				scope.getMaxClass(), scope.getMaxMethod());
 	}
 
 }

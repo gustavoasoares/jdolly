@@ -1,46 +1,19 @@
 package jdolly;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import jdolly.util.StrUtil;
-import jdolly.visitors.ImportCheckerVisitor;
-import jdolly.visitors.ImportVisitor;
-import sun.misc.Signal;
-
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ClassInstanceCreation;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.FieldAccess;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.ImportDeclaration;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.MethodInvocation;
-import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.PackageDeclaration;
-import org.eclipse.jdt.core.dom.PrimitiveType;
-import org.eclipse.jdt.core.dom.ReturnStatement;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
-import org.eclipse.jdt.core.dom.SuperFieldAccess;
-import org.eclipse.jdt.core.dom.SuperMethodInvocation;
-import org.eclipse.jdt.core.dom.ThisExpression;
-import org.eclipse.jdt.core.dom.Type;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
-
-
 import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig.Field;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
+import jdolly.util.StrUtil;
+import jdolly.visitors.ImportCheckerVisitor;
+import jdolly.visitors.ImportVisitor;
+import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AlloyToJavaTranslator {
 	// private final String ALLOY_MODULE_NAME = "javametamodel";
@@ -603,7 +576,7 @@ public class AlloyToJavaTranslator {
 	}
 
 	private BodyType setBodyType(String bodySig) {
-		BodyType result = null; // se não for nenhuma das condições haverá NullPointerException
+		BodyType result = null; // se nï¿½o for nenhuma das condiï¿½ï¿½es haverï¿½ NullPointerException
 
 		if (bodySig.startsWith("MethodInvocation"))
 			result = BodyType.METHOD_INVOCATION;
@@ -808,7 +781,7 @@ public class AlloyToJavaTranslator {
 	}
 
 	private Field getField(String key, SafeList<Field> compUnitFields) {
-		Field result = null; //compUnitFields.get(0); // possível null pointer exception
+		Field result = null; //compUnitFields.get(0); // possï¿½vel null pointer exception
 
 		for (Field field : compUnitFields) {
 			String strRepresOfField = field.toString();

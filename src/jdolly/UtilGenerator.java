@@ -1,32 +1,32 @@
 package jdolly;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.*;
 
-public class UtilGenerator {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public final class UtilGenerator {
 
 	private static final String METHOD_NAME = "m_0";
 	private static AST ast = AST.newAST(AST.JLS3);
 
-	public static List<MethodDeclaration> getMethodsList(final CompilationUnit compilationUnits) {
+	private UtilGenerator(){}
+
+	public static List<MethodDeclaration> getMethodsList(
+			final CompilationUnit compilationUnits) {
+
 		final List<MethodDeclaration> result = new ArrayList<MethodDeclaration>();
 		final List<TypeDeclaration> types = compilationUnits.types();
 		for (final TypeDeclaration type : types) {
 			final MethodDeclaration[] methods = type.getMethods();
-			for (final MethodDeclaration methodDeclaration : methods) {
-				result.add(methodDeclaration);
-			}
+			result.addAll(Arrays.asList(methods));
 		}
 		return result;
 	}
 
-	public static MethodDeclaration getTargetMethod(final CompilationUnit compilationUnits,
-			final String className) {
+	public static MethodDeclaration getTargetMethod(
+			final CompilationUnit compilationUnits, final String className) {
 		MethodDeclaration result = null;
 
 		final List<TypeDeclaration> types = compilationUnits.types();
@@ -35,7 +35,7 @@ public class UtilGenerator {
 			for (final MethodDeclaration methodDeclaration : methods) {
 				final TypeDeclaration typeDeclaration = (TypeDeclaration) methodDeclaration
 						.getParent();
-				if (methodDeclaration.getName().getIdentifier().equals(METHOD_NAME)
+				if (isMethodName(methodDeclaration)
 						&& typeDeclaration.getName().getIdentifier().equals(
 								className)){
 					result = methodDeclaration;
@@ -52,7 +52,7 @@ public class UtilGenerator {
 		for (final TypeDeclaration type : types) {
 			final MethodDeclaration[] methods = type.getMethods();
 			for (final MethodDeclaration methodDeclaration : methods) {
-				if (methodDeclaration.getName().getIdentifier().equals(METHOD_NAME)){
+				if (isMethodName(methodDeclaration)) {
 					result = methodDeclaration;
 				}	
 			}
@@ -60,14 +60,16 @@ public class UtilGenerator {
 		return result;
 	}
 
+	private static boolean isMethodName(final MethodDeclaration methodDeclaration) {
+		return methodDeclaration.getName().getIdentifier().equals(METHOD_NAME);
+	}
+
 	public static List<FieldDeclaration> getFieldsList(final CompilationUnit compilationUnits) {
 		final List<FieldDeclaration> result = new ArrayList<FieldDeclaration>();
 		final List<TypeDeclaration> types = compilationUnits.types();
 		for (final TypeDeclaration type : types) {
 			final FieldDeclaration[] fields = type.getFields();
-			for (final FieldDeclaration fieldDeclaration : fields) {
-				result.add(fieldDeclaration);
-			}
+			result.addAll(Arrays.asList(fields));
 		}
 		return result;
 	}

@@ -25,21 +25,21 @@ public final class AlloyRunJava {
 		
 		Util.printTheory(theory);
 		
-		int totalOfGeneratedPrograms = 0;
+		int totalGenPrograms = 0;
 		try {
-			totalOfGeneratedPrograms = (int) getTotalGenProgsBy(theory);
+			totalGenPrograms = (int) getTotalGenProgsBy(theory);
 		} catch (Err e) {
 			e.printStackTrace();
 		}
-		return totalOfGeneratedPrograms;
+		return totalGenPrograms;
 	}
 
 	private static long getTotalGenProgsBy(final String theory) throws Err {
 		final A4Reporter report = JDolly.createA4Reporter();
 		final A4Options options = Util.defHowExecCommands();
-		final Module alloyModuleOfTheory = CompUtil.parseEverything_fromFile(report, null, theory);
-		final ConstList<Command> commandsInModule = alloyModuleOfTheory.getAllCommands();
-		final ConstList<Sig> sigsDefined = alloyModuleOfTheory.getAllReachableSigs();
+		final Module alloyModule = CompUtil.parseEverything_fromFile(report, null, theory);
+		final ConstList<Command> commandsInModule = alloyModule.getAllCommands();
+		final ConstList<Sig> sigsDefined = alloyModule.getAllReachableSigs();
 		
 		int currentGeneration = 0;
 		
@@ -49,14 +49,14 @@ public final class AlloyRunJava {
 			A4Solution ans = TranslateAlloyToKodkod.execute_command(report,
 					sigsDefined, currentCommand, options);
 
-			int totalOfSatisfiableAnswers = 1;
+			int totalSatisfAns = 1;
 			long timeBefore = System.currentTimeMillis();
 			
 			while (ans != null) {
 				printGeneration(currentGeneration);
 				ans = ans.next();
 				if (ans.satisfiable()) {
-					totalOfSatisfiableAnswers++;
+					totalSatisfAns++;
 				} else {
 					break;
 				}	
@@ -66,7 +66,7 @@ public final class AlloyRunJava {
 			long timeAfter = System.currentTimeMillis();
 			
 			TimeInterval timeInterval = new TimeInterval(timeBefore, timeAfter);
-			printSoluctionsReport(totalOfSatisfiableAnswers, timeInterval);
+			printSoluctionsReport(totalSatisfAns, timeInterval);
 		}
 		return currentGeneration;
 	}

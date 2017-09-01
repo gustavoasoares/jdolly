@@ -13,30 +13,39 @@ public class Scope {
 		this.maxMethod = maxMethod;
 		this.maxField = maxField;
 	}
+
 	public int getMaxPackage() {
 		return maxPackage;
 	}
+
 	public void setMaxPackage(final int maxPackage) {
 		this.maxPackage = maxPackage;
 	}
+
 	public int getMaxClass() {
 		return maxClass;
 	}
+
 	public void setMaxClass(final int maxClass) {
 		this.maxClass = maxClass;
 	}
+
 	public int getMaxMethod() {
 		return maxMethod;
 	}
+
 	public void setMaxMethod(final int maxMethod) {
 		this.maxMethod = maxMethod;
 	}
+
 	public int getMaxField() {
 		return maxField;
 	}
+
 	public void setMaxField(final int maxField) {
 		this.maxField = maxField;
 	}
+
 	@Override
 	public String toString() {
 		return "Scope: maxPackage=" + maxPackage + ", maxClass=" + maxClass + ", maxMethod=" + maxMethod + ", maxField="

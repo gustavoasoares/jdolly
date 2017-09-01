@@ -1,8 +1,5 @@
 package jdolly;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
@@ -14,6 +11,9 @@ import edu.mit.csail.sdg.alloy4compiler.parser.CompUtil;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Options;
 import edu.mit.csail.sdg.alloy4compiler.translator.TranslateAlloyToKodkod;
 import jdolly.util.Util;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class JDollyImp extends JDolly {
 
@@ -51,7 +51,7 @@ public class JDollyImp extends JDolly {
 
 	private ConstList<CommandScope> createScopeList() throws ErrorSyntax {
 
-		List<CommandScope> result = new ArrayList<CommandScope>();
+		final List<CommandScope> result = new ArrayList<CommandScope>();
 
 		final Sig type = createSignatureBy("Class");
 		final Sig method = createSignatureBy("Method");
@@ -103,7 +103,7 @@ public class JDollyImp extends JDolly {
 	protected void initializeAlloyAnalyzer() {
 		// Alloy4 sends diagnostic messages and progress reports to the
 		// A4Reporter.
-		A4Reporter compilationIssuesReport = createA4Reporter();
+		final A4Reporter compilationIssuesReport = createA4Reporter();
 
 		try {
 			defineCurrentAns(compilationIssuesReport);
@@ -112,27 +112,26 @@ public class JDollyImp extends JDolly {
 		}
 	}
 
-	private void defineCurrentAns(A4Reporter compilationIssuesReport) throws Err, ErrorSyntax {
+	private void defineCurrentAns(final A4Reporter compilationIssuesReport) throws Err, ErrorSyntax {
 		
 		javaMetamodel = CompUtil.parseEverything_fromFile(compilationIssuesReport, null,
 				alloyTheory);
 
 		final ConstList<Command> commandsInModule = javaMetamodel.getAllCommands();
 		
-		for (Command currentCommand : commandsInModule) {
-			Command currentCmdWithOtherScope = modifyCurrentCmdScope(currentCommand);
-			Util.printCommand(currentCmdWithOtherScope);
+		for (final Command currentCommand : commandsInModule) {
+			final Command currCmdNewScope = modifyCmdScope(currentCommand);
+			Util.printCommand(currCmdNewScope);
 			
-			A4Options options = Util.defHowExecCommands();
+			final A4Options options = Util.defHowExecCommands();
 			currentAns = TranslateAlloyToKodkod.execute_command(compilationIssuesReport,
-					javaMetamodel.getAllReachableSigs(), currentCmdWithOtherScope, options);
+					javaMetamodel.getAllReachableSigs(), currCmdNewScope, options);
 		}
 	}
 
-	private Command modifyCurrentCmdScope(final Command currentCommand) throws ErrorSyntax {
-		ConstList<CommandScope> constList = createScopeList();
-		Command currentCmdWithOtherScope = currentCommand.change(constList);
-		return currentCmdWithOtherScope;
+	private Command modifyCmdScope(final Command currentCommand) throws ErrorSyntax {
+		final ConstList<CommandScope> constList = createScopeList();
+		return currentCommand.change(constList);
 	}
 
 }
