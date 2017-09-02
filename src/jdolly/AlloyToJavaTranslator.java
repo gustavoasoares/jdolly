@@ -9,10 +9,7 @@ import jdolly.visitors.ImportVisitor;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AlloyToJavaTranslator {
 
@@ -786,35 +783,32 @@ public class AlloyToJavaTranslator {
 	private Map<String, List<String>> getRelations(Field field) {
 		Map<String, List<String>> result = new HashMap<String, List<String>>();
 
-		if (field == null)
+		if (field == null) {
 			return result;
-
-		String relations = ans.eval(field).toString();
-		String relationsCleaned = AlloyToJavaUtil.cleanName(relations);
+		}
+		String rawRelations = ans.eval(field).toString();
+		String relationsCleaned = AlloyToJavaUtil.cleanName(rawRelations);
 
 		boolean relationsIsNotEmpty = relationsCleaned.length() > 0;	
 		if (relationsIsNotEmpty) {
-			String[] arrayRelation = relationsCleaned.split(",");
-			addRelationsToResult(result, arrayRelation);
+			addRelationsToResult(result, relationsCleaned);
 		}
+		//System.out.println("result: " + result.toString() + "termina aq");
 		return result;
 	}
 
-	private void addRelationsToResult(Map<String, List<String>> result, String[] arrayRelation) {
-		String[] relatSplitted = {};
-		
-		for (String relation : arrayRelation) {
-			relatSplitted = relation.split("->");
-			relatSplitted[0] = relatSplitted[0].replaceAll("javametamodel(.)*/", "");
-			relatSplitted[1] = relatSplitted[1].replaceAll("javametamodel(.)*/", "");
-
-			if (!result.containsKey(relatSplitted[0])) {
+	private void addRelationsToResult(Map<String, List<String>> result, String relationCleaned) {
+		String[] relatCleaned = {};
+		String[] relationsSplitted = relationCleaned.split(",");
+		for (String relation : relationsSplitted) {
+			relatCleaned = AlloyToJavaUtil.cleanMetaModelNaming(relation);
+			if (!result.containsKey(relatCleaned[0])) {
 				List<String> values = new ArrayList<String>();
-				values.add(relatSplitted[1]);
-				result.put(relatSplitted[0], values);
+				values.add(relatCleaned[1]);
+				result.put(relatCleaned[0], values);
 			} else {
-				List<String> relatSplittedValues = result.get(relatSplitted[0]);
-				relatSplittedValues.add(relatSplitted[1]);
+				List<String> relatSplittedValues = result.get(relatCleaned[0]);
+				relatSplittedValues.add(relatCleaned[1]);
 			}
 		}
 	}
