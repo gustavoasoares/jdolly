@@ -17,59 +17,31 @@ import java.util.Map;
 public class AlloyToJavaTranslator {
 
 	// private final String ALLOY_MODULE_NAME = "javametamodel";
-	
+	private static AST ast = AST.newAST(AST.JLS3);
+	private A4Solution ans;
+
 	public AlloyToJavaTranslator(A4Solution ans) {
 		this.ans = ans;
 	}
- 
-	private static AST ast = AST.newAST(AST.JLS3); 
-
-	private A4Solution ans;
 
 	public List<CompilationUnit> getJavaCode() {
 
-		List<CompilationUnit> result = new ArrayList<CompilationUnit>();
+		List<CompilationUnit> generatedPrograms = getCompilationUnits();
 
-		PackageDeclaration packageDeclaration;
-		TypeDeclaration typeDeclaration;
-		CompilationUnit compilationUnit;
-		
-		
-		final List<String> classesInstances = getClassesInstances();
-		
-		for (String c : classesInstances) {
-
-			packageDeclaration = getPackageByClassId(c);
-
-			// List<ImportDeclaration> importDeclarations = getImports(c);
-
-			typeDeclaration = getClass(c);
-
-			compilationUnit = ast.newCompilationUnit();
-
-			compilationUnit.setPackage(packageDeclaration);
-
-			// for (ImportDeclaration importDeclaration : importDeclarations) {
-			// compilationUnit.imports().add(importDeclaration);
-			// }
-
-			compilationUnit.types().add(typeDeclaration);
-
-			result.add(compilationUnit);
-		}
 		ImportVisitor cv = new ImportVisitor();
-		PackageDeclaration packageOfCompUnit;
+		PackageDeclaration compilationUnitPackage;
 		Name packageName;
 		// colocar imports
-		for (CompilationUnit cu : result) {
+		for (CompilationUnit cu : generatedPrograms) {
 			cu.accept(cv);
-			packageOfCompUnit = cu.getPackage();
-			packageName = packageOfCompUnit.getName();
+			compilationUnitPackage = cu.getPackage();
+			packageName = compilationUnitPackage.getName();
+			//System.out.println("cucu: " + packageName + "termina aq");
 			// System.out.println("Superclass: " + cv.getSuperClassName());
 
 			List<String> importedPackages = new ArrayList<String>();
 
-			for (CompilationUnit cu2 : result) {
+			for (CompilationUnit cu2 : generatedPrograms) {
 				Name packageToCompare = cu2.getPackage().getName();
 				ImportDeclaration importDeclaration = null;
 				if (packageName.getFullyQualifiedName().equals(
@@ -99,23 +71,44 @@ public class AlloyToJavaTranslator {
 							}
 						}
 					}
-
 				}
-
 				if (importDeclaration != null
 						&& !importedPackages.contains(packageToCompare
 								.getFullyQualifiedName())) {
 					importedPackages.add(packageToCompare
 							.getFullyQualifiedName());
 					cu.imports().add(importDeclaration);
-
 				}
-
 			}
+		}
+		return generatedPrograms;
+	}
+
+	private List<CompilationUnit> getCompilationUnits() {
+		List<CompilationUnit> generatedPrograms = new ArrayList<CompilationUnit>();
+
+		PackageDeclaration packageDeclaration;
+
+		TypeDeclaration typeDeclaration;
+
+		CompilationUnit compilationUnit;
+
+		final List<String> classesInstances = getClassesInstances();
+		for (String className : classesInstances) {
+			packageDeclaration = getClassPackage(className);
+			//System.out.println("packageDeclaration: " + packageDeclaration);
+			typeDeclaration = getClassBody(className);
+			//System.out.println("typeDeclaration: " + typeDeclaration + "->termina aq");
+			compilationUnit = ast.newCompilationUnit();
+
+			compilationUnit.setPackage(packageDeclaration);
+
+			compilationUnit.types().add(typeDeclaration);
+			//System.out.println("xxx: " + compilationUnit + "termina aq");
+			generatedPrograms.add(compilationUnit);
 
 		}
-
-		return result;
+		return generatedPrograms;
 	}
 
 	private ImportDeclaration importPacakge(Name packageToCompare) {
@@ -135,8 +128,19 @@ public class AlloyToJavaTranslator {
 
 		return result;
 	}
-	
-	private TypeDeclaration getClass(String classId) {
+
+	/**Return the body of the class (definition, fields and methods)
+	 * related to the given classId.
+	 *
+	 * An example of output would be:
+		 public class ClassId_0 {
+			public long methodid_0() {
+				return fieldid_1;
+			}
+			public int fieldid_1=10;
+		 }
+	 * */
+	private TypeDeclaration getClassBody(String classId) {
 		TypeDeclaration result = ast.newTypeDeclaration();
 
 		Sig classSig = getSig("Class");
@@ -223,7 +227,7 @@ public class AlloyToJavaTranslator {
 			SafeList<Field> classFields, String classId, boolean isInterface) {
 		List<MethodDeclaration> result = new ArrayList<MethodDeclaration>();
 
-		Field methodsRel = getField("methods", classFields);
+		Field methodsRel = AlloyToJavaUtil.getField("methods", classFields);
 
 		Map<String, List<String>> methodsMap = getRelations(methodsRel);
 
@@ -292,14 +296,14 @@ public class AlloyToJavaTranslator {
 
 	private String getIdFromInvocation(Sig signature, String bodyId, String key){
 		SafeList<Field> sFields = signature.getFields();
-		Field idRelations = getField(key, sFields);
+		Field idRelations = AlloyToJavaUtil.getField(key, sFields);
 		return getFieldInstance(idRelations, bodyId);
 		
 	}
 	
 	private String getQualifier(Sig signature, String bodyId){
 		SafeList<Field> sFields = signature.getFields();
-		Field qualRelations = getField("q", sFields);
+		Field qualRelations = AlloyToJavaUtil.getField("q", sFields);
 		return getFieldInstance(qualRelations, bodyId);
 	}
 	
@@ -318,7 +322,7 @@ public class AlloyToJavaTranslator {
 		// pega o nome da classe que contem o metodo para usar no qualified this
 		Sig classSig = getSig("Class");
 		SafeList<Field> classFields = classSig.getFields();
-		Field classIdRelations = getField("id", classFields);
+		Field classIdRelations = AlloyToJavaUtil.getField("id", classFields);
 		Map<String, List<String>> classIdRel = getRelations(classIdRelations);
 		
 		/**to do:apply factory pattern to extract all the conditions from here
@@ -336,7 +340,7 @@ public class AlloyToJavaTranslator {
 		} else if (isInstanceOfType(bodyId, "ConstructorMethodInvocation")) {
 			s = getSig("ConstructorMethodInvocation");
 			methodId = getIdFromInvocation(s, bodyId, "idMethod");
-			idClassRelations = getField("idClass", s.getFields());
+			idClassRelations = AlloyToJavaUtil.getField("idClass", s.getFields());
 			className = getFieldInstance(idClassRelations, bodyId);
 			outputInvocationExp = getConstructorMethodInvocationExpression(methodId, className);
 			
@@ -350,7 +354,7 @@ public class AlloyToJavaTranslator {
 		} else if (isInstanceOfType(bodyId, "ConstructorFieldInvocation")) {
 			s = getSig("ConstructorFieldInvocation");
 			fieldId = getIdFromInvocation(s, bodyId, "id");
-			idClassRelations = getField("idClass", s.getFields());
+			idClassRelations = AlloyToJavaUtil.getField("idClass", s.getFields());
 			className = getFieldInstance(idClassRelations, bodyId);
 			outputInvocationExp = getConstructorFieldInvocationExpression(fieldId, className);
 			
@@ -602,7 +606,7 @@ public class AlloyToJavaTranslator {
 		
 		List<FieldDeclaration> result = new ArrayList<FieldDeclaration>();
 
-		Field fieldsRel = getField("fields", classFields);
+		Field fieldsRel = AlloyToJavaUtil.getField("fields", classFields);
 
 		Map<String, List<String>> fieldsMap = getRelations(fieldsRel);
 
@@ -731,7 +735,7 @@ public class AlloyToJavaTranslator {
 	private Map<String, List<String>> getEntityRelatByCriteria(String criteria, String entity){
 		Sig entitySig = getSig(entity);
 		SafeList<Field> entityFields = entitySig.getFields();
-		Field entityRelatByCriteria = getField(criteria, entityFields);
+		Field entityRelatByCriteria = AlloyToJavaUtil.getField(criteria, entityFields);
 		
 		return getRelations(entityRelatByCriteria);
 	}
@@ -739,7 +743,7 @@ public class AlloyToJavaTranslator {
 	private Field getEntityFieldsByCriteria(String criteria, String entity){
 		Sig entitySig = getSig(entity);
 		SafeList<Field> entityFields = entitySig.getFields();
-		Field entityFieldsByCriteria = getField(criteria, entityFields);
+		Field entityFieldsByCriteria = AlloyToJavaUtil.getField(criteria, entityFields);
 		return entityFieldsByCriteria;
 	}
 		
@@ -767,7 +771,7 @@ public class AlloyToJavaTranslator {
 		return getEntityFieldsByCriteria(criteria, "Field");
 	}
 	
-	private PackageDeclaration getPackageByClassId(String classId) {
+	private PackageDeclaration getClassPackage(String classId) {
 		PackageDeclaration result = ast.newPackageDeclaration();
 
 		Map<String, List<String>> relations = getClassRelationsBy("package");
@@ -776,19 +780,6 @@ public class AlloyToJavaTranslator {
 		
 		result.setName(ast.newSimpleName(packageName));
 
-		return result;
-	}
-
-	private Field getField(String key, SafeList<Field> compUnitFields) {
-		Field result = null; //compUnitFields.get(0); // poss�vel null pointer exception
-
-		for (Field field : compUnitFields) {
-			String strRepresOfField = field.toString();
-			if (strRepresOfField.contains(key)) {
-				result = field;
-				break;
-			}
-		}
 		return result;
 	}
 

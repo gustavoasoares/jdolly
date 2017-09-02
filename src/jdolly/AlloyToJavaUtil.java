@@ -1,6 +1,7 @@
 package jdolly;
 
-import jdolly.util.StrUtil;
+import edu.mit.csail.sdg.alloy4.SafeList;
+import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ public final class AlloyToJavaUtil {
         final int endIndex = name.length() - 1;
 
         String removeBraces = name.substring(beginIndex, endIndex);
-        String replaceDollar = removeBraces.replace("$", StrUtil.UNDERSCORE_SYMBOL);
+        String replaceDollar = removeBraces.replace("$", "_");
         String removeSpaces = replaceDollar.replaceAll(" ", "");
 
         return removeSpaces;
@@ -55,4 +56,19 @@ public final class AlloyToJavaUtil {
         }
         return result;
     }
+
+    public static Sig.Field getField(String key, SafeList<Sig.Field> compUnitFields) {
+        Sig.Field result = null;
+
+        for (Sig.Field field : compUnitFields) {
+            String strRepresOfField = field.toString();
+            if (strRepresOfField.contains(key)) {
+                result = field;
+                break;
+            }
+        }
+        return result;
+    }
+
+
 }
