@@ -1,15 +1,5 @@
 package jdolly;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.testorrery.ForLoopIterator;
-import org.testorrery.ForLoopWithJumpIterator;
-import org.testorrery.Generator;
-import org.testorrery.IGenerator;
-
 import edu.mit.csail.sdg.alloy4.A4Reporter;
 import edu.mit.csail.sdg.alloy4.ConstList;
 import edu.mit.csail.sdg.alloy4.Err;
@@ -17,6 +7,11 @@ import edu.mit.csail.sdg.alloy4.ErrorWarning;
 import edu.mit.csail.sdg.alloy4compiler.ast.Module;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import edu.mit.csail.sdg.alloy4compiler.translator.A4Solution;
+import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.testorrery.Generator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class JDolly extends Generator<List<CompilationUnit>> {
 
@@ -97,8 +92,8 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 			isFirstTime = false;
 			return true;
 		}
-		final boolean isLastProgram = maximumPrograms > 0 && maximumPrograms == currentProgram;
-		if (isLastProgram) {
+
+		if (isLastProgram()) {
 			return false;
 		}
 
@@ -118,7 +113,11 @@ public abstract class JDolly extends Generator<List<CompilationUnit>> {
 
 		return result;
 	}
-	
+
+	private boolean isLastProgram() {
+		return maximumPrograms > 0 && maximumPrograms == currentProgram;
+	}
+
 	public int getMaxClassNames() {
 		return maxClassNames;
 	}

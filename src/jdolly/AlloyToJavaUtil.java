@@ -6,6 +6,7 @@ import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public final class AlloyToJavaUtil {
 
@@ -106,4 +107,36 @@ public final class AlloyToJavaUtil {
 
         return relatCleaned;
     }
+
+    public static String setVisValue(Map<String, List<String>> visRel, String field) {
+        String vis = "";
+        if (visRel.containsKey(field))
+            vis = visRel.get(field).get(0);
+        return vis;
+    }
+
+    public static BodyType setBodyType(String bodySig) {
+        BodyType result = null;
+
+        if (bodySig.startsWith("MethodInvocation"))
+            result = BodyType.METHOD_INVOCATION;
+        else if (bodySig.startsWith("FieldInvocation"))
+            result = BodyType.FIELD_INVOCATION;
+        else if (bodySig.startsWith("ConstructorFieldInvocation"))
+            result = BodyType.CONSTRUCTOR_FIELD_INVOCATION;
+        else if (bodySig.startsWith("ConstructorMethodInvocation"))
+            result = BodyType.CONSTRUCTOR_METHOD_INVOCATION;
+
+        else if (bodySig.startsWith("ClassMethodInvocation"))
+            result = BodyType.CLASS_METHOD_INVOCATION;
+        else if (bodySig.startsWith("ClassFieldInvocation"))
+            result = BodyType.CLASS_FIELD_INVOCATION;
+
+        else if (bodySig.startsWith("LiteralValue"))
+            result = BodyType.INT_CONSTANT_VALUE;
+
+        return result;
+    }
+
+
 }

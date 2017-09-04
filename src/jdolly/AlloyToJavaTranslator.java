@@ -28,13 +28,12 @@ public class AlloyToJavaTranslator {
 		ImportVisitor cv = new ImportVisitor();
 		PackageDeclaration compilationUnitPackage;
 		Name packageName;
+
 		// colocar imports
 		for (CompilationUnit cu : generatedPrograms) {
 			cu.accept(cv);
 			compilationUnitPackage = cu.getPackage();
 			packageName = compilationUnitPackage.getName();
-			//System.out.println("cucu: " + packageName + "termina aq");
-			// System.out.println("Superclass: " + cv.getSuperClassName());
 
 			List<String> importedPackages = new ArrayList<String>();
 
@@ -50,7 +49,6 @@ public class AlloyToJavaTranslator {
 				// adiciona o import para super class
 				if (iv.getClassName().equals(cv.getSuperClassName())) {
 					importDeclaration = importPacakge(packageToCompare);
-
 				}
 				// adiciona o import para fields
 				else {
@@ -84,26 +82,21 @@ public class AlloyToJavaTranslator {
 	private List<CompilationUnit> getCompilationUnits() {
 		List<CompilationUnit> generatedPrograms = new ArrayList<CompilationUnit>();
 
-		PackageDeclaration packageDeclaration;
-
-		TypeDeclaration typeDeclaration;
-
 		CompilationUnit compilationUnit;
+		PackageDeclaration packageDeclaration;
+		TypeDeclaration typeDeclaration;
 
 		final List<String> classesInstances = getClassesInstances();
 		for (String className : classesInstances) {
-			packageDeclaration = getClassPackage(className);
-			//System.out.println("packageDeclaration: " + packageDeclaration);
-			typeDeclaration = getClassBody(className);
-			//System.out.println("typeDeclaration: " + typeDeclaration + "->termina aq");
 			compilationUnit = ast.newCompilationUnit();
+			packageDeclaration = getClassPackage(className);
+			typeDeclaration = getClassBody(className);
 
 			compilationUnit.setPackage(packageDeclaration);
 
 			compilationUnit.types().add(typeDeclaration);
-			//System.out.println("xxx: " + compilationUnit + "termina aq");
-			generatedPrograms.add(compilationUnit);
 
+			generatedPrograms.add(compilationUnit);
 		}
 		return generatedPrograms;
 	}
@@ -240,9 +233,9 @@ public class AlloyToJavaTranslator {
 
 			for (String method : methods) {
 				String id = idRel.get(method).get(0);
-				String arg = setVisValue(argRel, method);
+				String arg = AlloyToJavaUtil.setVisValue(argRel, method);
 
-				String vis = setVisValue(visRel, method);
+				String vis = AlloyToJavaUtil.setVisValue(visRel, method);
 
 				String isAbstract = "";
 				if (mIsAbstractRelations != null) {
@@ -294,6 +287,7 @@ public class AlloyToJavaTranslator {
 	private String getIdFromInvocation(Sig signature, String bodyId, String key){
 		SafeList<Field> sFields = signature.getFields();
 		Field idRelations = AlloyToJavaUtil.getField(key, sFields);
+
 		return getFieldInstance(idRelations, bodyId);
 		
 	}
@@ -301,6 +295,7 @@ public class AlloyToJavaTranslator {
 	private String getQualifier(Sig signature, String bodyId){
 		SafeList<Field> sFields = signature.getFields();
 		Field qualRelations = AlloyToJavaUtil.getField("q", sFields);
+
 		return getFieldInstance(qualRelations, bodyId);
 	}
 	
@@ -347,7 +342,7 @@ public class AlloyToJavaTranslator {
 			qualifier = getQualifier(s, bodyId);
 			className = classIdRel.get(classId).get(0);//possible violation of demeter's law
 			outputInvocationExp = getFieldInvocationExpression(fieldId, qualifier, className);
-			
+
 		} else if (isInstanceOfType(bodyId, "ConstructorFieldInvocation")) {
 			s = getSig("ConstructorFieldInvocation");
 			fieldId = getIdFromInvocation(s, bodyId, "id");
@@ -417,17 +412,9 @@ public class AlloyToJavaTranslator {
 		String result = "";
 
 		Map<String, List<String>> idRel = getRelations(f);
-		
-//		if (idRel.size() > 0) {
-//			Collection<List<String>> values = idRel.values();
-//			for (List<String> list : values) {
-//				if (list.contains(key)) result = list.get(list.indexOf(key));
-//			}
-//		}
-		if (idRel.size() > 0 && idRel.containsKey(key))
-
+		if (idRel.size() > 0 && idRel.containsKey(key)) {
 			result = idRel.get(key).get(0);
-
+		}
 		return result;
 	}
 
@@ -549,22 +536,20 @@ public class AlloyToJavaTranslator {
 
 		SimpleName fieldName = ast.newSimpleName(fieldId.toLowerCase());
 		result = fieldName;
-		
+
 		if (qualifier.equals("super__0")) {
 			SuperFieldAccess superFieldAcc = ast.newSuperFieldAccess();
 			superFieldAcc.setName(fieldName);
 			result = superFieldAcc;
 		} else {
 			if (qualifier.equals("this__0")) {
-				FieldAccess fieldAcc = ast.newFieldAccess();			
-				fieldAcc.setName(fieldName);
+				FieldAccess fieldAcc = getNewFieldAccess(fieldName);
 				ThisExpression thisExpression = ast.newThisExpression();				
 				fieldAcc.setExpression(thisExpression);
 				result = fieldAcc;
 			}
 			else if (qualifier.equals("qthis__0")) {
-				FieldAccess fieldAcc = ast.newFieldAccess();			
-				fieldAcc.setName(fieldName);
+				FieldAccess fieldAcc = getNewFieldAccess(fieldName);
 				ThisExpression thisExpression = ast.newThisExpression();
 				thisExpression.setQualifier(ast.newSimpleName(classId));
 				fieldAcc.setExpression(thisExpression);
@@ -575,27 +560,11 @@ public class AlloyToJavaTranslator {
 		
 	}
 
-	private BodyType setBodyType(String bodySig) {
-		BodyType result = null; // se n�o for nenhuma das condi��es haver� NullPointerException
+	private FieldAccess getNewFieldAccess(SimpleName fieldName) {
+		FieldAccess fieldAcc = ast.newFieldAccess();
+		fieldAcc.setName(fieldName);
 
-		if (bodySig.startsWith("MethodInvocation"))
-			result = BodyType.METHOD_INVOCATION;
-		else if (bodySig.startsWith("FieldInvocation"))
-			result = BodyType.FIELD_INVOCATION;
-		else if (bodySig.startsWith("ConstructorFieldInvocation"))
-			result = BodyType.CONSTRUCTOR_FIELD_INVOCATION;
-		else if (bodySig.startsWith("ConstructorMethodInvocation"))
-			result = BodyType.CONSTRUCTOR_METHOD_INVOCATION;
-
-		// TODO
-		// Isso vai ser aleat�rio
-		// else if (bodySig.startsWith("ClassMethodInvocation"))
-		// result = BodyType.CLASS_METHOD_INVOCATION;
-		// else if (bodySig.startsWith("ClassFieldInvocation"))
-		// result = BodyType.CLASS_FIELD_INVOCATION;
-		else if (bodySig.startsWith("LiteralValue"))
-			result = BodyType.INT_CONSTANT_VALUE;
-		return result;
+		return fieldAcc;
 	}
 
 	private List<FieldDeclaration> getClassFields(SafeList<Field> classFields,
@@ -617,7 +586,7 @@ public class AlloyToJavaTranslator {
 			for (String field : fields) {
 				String id = idRel.get(field).get(0);
 				String type = typeRel.get(field).get(0);
-				String vis = setVisValue(visRel, field);
+				String vis = AlloyToJavaUtil.setVisValue(visRel, field);
 
 				FieldDeclaration fieldDeclaration = getFieldDeclaration(id);
 
@@ -661,13 +630,6 @@ public class AlloyToJavaTranslator {
 
 		FieldDeclaration fieldDeclaration = ast.newFieldDeclaration(fieldId);
 		return fieldDeclaration;
-	}
-
-	private String setVisValue(Map<String, List<String>> visRel, String field) {
-		String vis = "";
-		if (visRel.containsKey(field))
-			vis = visRel.get(field).get(0);
-		return vis;
 	}
 
 	private Type getType(String type) {
@@ -772,8 +734,9 @@ public class AlloyToJavaTranslator {
 		PackageDeclaration result = ast.newPackageDeclaration();
 
 		Map<String, List<String>> relations = getClassRelationsBy("package");
-		List<String> relationsByClassId = relations.get(classId);
-		String packageName = relationsByClassId.get(0);
+		List<String> classRelations = relations.get(classId);
+
+		String packageName = classRelations.get(0);
 		
 		result.setName(ast.newSimpleName(packageName));
 
@@ -791,34 +754,32 @@ public class AlloyToJavaTranslator {
 
 		boolean relationsIsNotEmpty = relationsCleaned.length() > 0;	
 		if (relationsIsNotEmpty) {
-			addRelationsToResult(result, relationsCleaned);
+			addRelationsTo(relationsCleaned, result);
 		}
-		//System.out.println("result: " + result.toString() + "termina aq");
 		return result;
 	}
 
-	private void addRelationsToResult(Map<String, List<String>> result, String relationCleaned) {
-		String[] relatCleaned = {};
+	private void addRelationsTo(String relationCleaned, Map<String, List<String>> result) {
+		String[] relations = {};
 		String[] relationsSplitted = relationCleaned.split(",");
 		for (String relation : relationsSplitted) {
-			relatCleaned = AlloyToJavaUtil.cleanMetaModelNaming(relation);
-			if (!result.containsKey(relatCleaned[0])) {
+
+			relations = AlloyToJavaUtil.cleanMetaModelNaming(relation);
+			if (!result.containsKey(relations[0])) {
 				List<String> values = new ArrayList<String>();
-				values.add(relatCleaned[1]);
-				result.put(relatCleaned[0], values);
+				values.add(relations[1]);
+				result.put(relations[0], values);
 			} else {
-				List<String> relatSplittedValues = result.get(relatCleaned[0]);
-				relatSplittedValues.add(relatCleaned[1]);
+				List<String> memberValues = result.get(relations[0]);
+				memberValues.add(relations[1]);
 			}
 		}
 	}
 
-	private Sig getSig(String signature) {
-		Sig result=null;
+	private Sig getSig(final String signature) {
+		Sig result = null;
 		SafeList<Sig> sigs = ans.getAllReachableSigs();
-		
-		//Sig result = sigs.get(0);
-		
+
 		for (Sig sig : sigs) {
 			String sigName = AlloyToJavaUtil.removeCrap(sig.toString());
 			if (sigName.equals(signature)) {
