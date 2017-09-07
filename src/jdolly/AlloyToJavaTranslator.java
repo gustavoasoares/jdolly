@@ -131,7 +131,7 @@ public class AlloyToJavaTranslator {
 		 }
 	 * */
 	private TypeDeclaration getClassBody(String classId) {
-		TypeDeclaration result = ast.newTypeDeclaration();
+		TypeDeclaration classBody = ast.newTypeDeclaration();
 
 		Sig classSig = getSig("Class");
 		SafeList<Field> classFields = classSig.getFields();
@@ -151,7 +151,7 @@ public class AlloyToJavaTranslator {
 			List<String> interface_ = implementRel.get(classId);
 			if (interface_ != null) {
 				String interfaceName = classIdRel.get(interface_.get(0)).get(0);
-				result.superInterfaceTypes().add(ast.newSimpleType(ast
+				classBody.superInterfaceTypes().add(ast.newSimpleType(ast
 						.newSimpleName(interfaceName)));
 			}
 		}
@@ -161,19 +161,15 @@ public class AlloyToJavaTranslator {
 			String isInterface = IsInterfacRel.get(classId).get(0);
 			boolean isInterface_ = isInterface.contains("True");
 			if (isInterface_) {
-				result.setInterface(true);
+				classBody.setInterface(true);
 			}
 			// methods
-			List<MethodDeclaration> methods = getClassMethods(classFields, classId,isInterface_);
-			for (MethodDeclaration methodDeclaration : methods) {
-				result.bodyDeclarations().add(methodDeclaration);
-			}
+			List<MethodDeclaration> methods = getClassMethods(classFields, classId, isInterface_);
+			addMethodsTo(methods, classBody);
 		} else {
 			// methods
 			List<MethodDeclaration> methods = getClassMethods(classFields, classId,false);
-			for (MethodDeclaration methodDeclaration : methods) {
-				result.bodyDeclarations().add(methodDeclaration);
-			}
+			addMethodsTo(methods, classBody);
 		}
 
 		//isInterface
@@ -182,35 +178,56 @@ public class AlloyToJavaTranslator {
 			String isAbstract = IsAbstractRel.get(classId).get(0);
 			boolean isAbstract_ = isAbstract.contains("True");
 			if (isAbstract_) {
-				result.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
+				Modifier abstractModifier = getModifier("abstract");
+				addModifierTo(abstractModifier, classBody);
 			}
 		}
 	
 		// id
 		String className = classIdRel.get(classId).get(0);
-		result.setName(ast.newSimpleName(className));
+		classBody.setName(ast.newSimpleName(className));
 
 		// visibilidade publica
-
-		result.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
+		Modifier publicModifier = getModifier("public");
+		addModifierTo(publicModifier, classBody);
 
 		// heran�a
 		List<String> superClass = extendRel.get(classId);
 		if (superClass != null) {
 			String superClassName = classIdRel.get(superClass.get(0)).get(0);
-			result.setSuperclassType(ast.newSimpleType(ast
+			classBody.setSuperclassType(ast.newSimpleType(ast
 					.newSimpleName(superClassName)));
 		}
 
 		// atributos
 		List<FieldDeclaration> fields = getClassFields(classFields, classId);
+		addFieldsTo(fields, classBody);
+
+		return classBody;
+	}
+
+	private Modifier getModifier(final String modifierName) {
+		return ast.newModifier(getModifierByName(modifierName));
+	}
+
+	private ModifierKeyword getModifierByName(final String modifierName) {
+		return ModifierKeyword.toKeyword(modifierName);
+	}
+
+	private void addModifierTo(final Modifier modifier, TypeDeclaration classBody) {
+		classBody.modifiers().add(modifier);
+	}
+
+	private void addMethodsTo(final List<MethodDeclaration> methods, TypeDeclaration classBody) {
+		for (MethodDeclaration methodDeclaration : methods) {
+            classBody.bodyDeclarations().add(methodDeclaration);
+        }
+	}
+
+	private void addFieldsTo(final List<FieldDeclaration> fields, TypeDeclaration classBody) {
 		for (FieldDeclaration fieldDeclaration : fields) {
-			result.bodyDeclarations().add(fieldDeclaration);
+			classBody.bodyDeclarations().add(fieldDeclaration);
 		}
-
-
-
-		return result;
 	}
 
 	private List<MethodDeclaration> getClassMethods(
@@ -656,14 +673,13 @@ public class AlloyToJavaTranslator {
 		Modifier result = null;
 
 		if (vis.equals("private__0"))
-			result = ast.newModifier(Modifier.ModifierKeyword.PRIVATE_KEYWORD);
+			result = getModifier("private");
 		else if (vis.equals("protected_0"))
-			result = ast
-					.newModifier(Modifier.ModifierKeyword.PROTECTED_KEYWORD);
+			result = getModifier("protected");
 		else if (vis.equals("public_0"))
-			result = ast.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD);
+			result = getModifier("public");
 		else if (vis.equals("abstract"))
-			result = ast.newModifier(Modifier.ModifierKeyword.ABSTRACT_KEYWORD);
+			result = getModifier("abstract");
 		return result;
 	}
 
