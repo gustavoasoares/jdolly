@@ -2,15 +2,16 @@ package jdolly;
 
 import edu.mit.csail.sdg.alloy4.SafeList;
 import edu.mit.csail.sdg.alloy4compiler.ast.Sig;
+import org.eclipse.jdt.core.dom.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public final class AlloyToJavaUtil {
+public final class AlloyUtil {
 
-    private AlloyToJavaUtil(){}
+    private AlloyUtil(){}
 
     /**
     * Clean a relation by replacing " "(empty spaces) and "$" to "" and "_", respectively,
@@ -138,5 +139,27 @@ public final class AlloyToJavaUtil {
         return result;
     }
 
+    public static void addModifierTo(final Modifier modifier, TypeDeclaration classBody) {
+        classBody.modifiers().add(modifier);
+    }
 
+    public static void addMethodsTo(final List<MethodDeclaration> methods, TypeDeclaration classBody) {
+        for (MethodDeclaration methodDeclaration : methods) {
+            classBody.bodyDeclarations().add(methodDeclaration);
+        }
+    }
+
+    public static void addFieldsTo(final List<FieldDeclaration> fields, TypeDeclaration classBody) {
+        for (FieldDeclaration fieldDeclaration : fields) {
+            classBody.bodyDeclarations().add(fieldDeclaration);
+        }
+    }
+
+    public static PrimitiveType.Code getPrimitiveType(final String primitiveTypeName) {
+        return PrimitiveType.toCode(primitiveTypeName);
+    }
+
+    public static Modifier.ModifierKeyword getModifierByName(final String modifierName) {
+        return Modifier.ModifierKeyword.toKeyword(modifierName);
+    }
 }
